@@ -4,7 +4,8 @@
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 {{ __('Ubah Menu') }}
             </h2>
-            <a href="{{ route('admin.menu-items.index') }}" class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
+            <a href="{{ route('admin.menu-items.index') }}" class="inline-flex items-center gap-1 text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
+                <x-icons.arrow-left class="w-4 h-4" />
                 {{ __('Kembali ke daftar') }}
             </a>
         </div>
@@ -75,7 +76,7 @@
                         <div class="space-y-3">
                             <x-input-label for="image" :value="__('Foto Menu')" />
                             @if ($menuItem->image_path)
-                                <img src="{{ asset('storage/'.$menuItem->image_path) }}" alt="{{ $menuItem->name }}" class="h-32 w-full rounded-lg object-cover">
+                                <img src="{{ asset('storage/'.$menuItem->image_path) }}" alt="{{ $menuItem->name }}" class="h-32 w-full rounded-lg object-contain bg-gray-100">
                             @endif
                             <input id="image" name="image" type="file" accept="image/*"
                                    class="mt-1 block w-full text-sm text-gray-600 dark:text-gray-300 file:mr-4 file:rounded-md file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-500/20 dark:file:text-indigo-200" />
@@ -94,10 +95,12 @@
 
                         <div class="flex justify-end gap-3">
                             <a href="{{ route('admin.menu-items.index') }}"
-                               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                               class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                <x-icons.x-mark class="w-4 h-4" />
                                 {{ __('Batal') }}
                             </a>
                             <x-primary-button>
+                                <x-icons.check class="w-4 h-4 mr-2" />
                                 {{ __('Simpan Perubahan') }}
                             </x-primary-button>
                         </div>

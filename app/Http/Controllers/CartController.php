@@ -6,6 +6,7 @@ use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\MenuItem;
 use App\Services\CartService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -23,13 +24,23 @@ class CartController extends Controller
         return view('customer.cart.index', compact('cart'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|JsonResponse
     {
         $validated = $request->validate([
             'menu_item_id' => ['required', 'exists:menu_items,id'],
             'quantity' => ['required', 'integer', 'min:1'],
             'notes' => ['nullable', 'string', 'max:500'],
+            'temperature' => ['nullable', 'in:hot,cold'],
+            'sugar_level' => ['nullable', 'integer', 'in:0,25,50,75,100'],
+            'ice_level' => ['nullable', 'integer', 'in:0,25,50,75,100'],
+            'size' => ['nullable', 'in:regular,large,jumbo'],
+            'beans' => ['nullable', 'string', 'max:40'],
+            'milk_option' => ['nullable', 'string', 'max:40'],
+            'redirect_to' => ['nullable', 'url'],
         ]);
+
+        $redirectTo = $validated['redirect_to'] ?? null;
+        unset($validated['redirect_to']);
 
         $menuItem = MenuItem::active()->inStock()->findOrFail($validated['menu_item_id']);
 
@@ -38,13 +49,29 @@ class CartController extends Controller
         }
 
         $cart = $this->cartService->getActiveCart($request);
-        $cart->addOrIncrementItem($menuItem, $validated['quantity'], $validated['notes'] ?? null);
+        $cart->addOrIncrementItem(
+            $menuItem,
+            $validated['quantity'],
+            $validated['notes'] ?? null,
+            $validated['temperature'] ?? null,
+            $validated['sugar_level'] ?? null,
+            $validated['ice_level'] ?? null,
+            $validated['size'] ?? null,
+            $validated['beans'] ?? null,
+            $validated['milk_option'] ?? null,
+        );
 
         if ($request->expectsJson()) {
-            return $this->respondWithCart($request, $cart, __('Menu ditambahkan ke keranjang.'));
+            return response()->json([
+                'message' => __('Menu ditambahkan ke keranjang.'),
+                'subtotal' => $cart->subtotal,
+                'redirect' => $redirectTo,
+            ]);
         }
 
-        return back()->with('status', __('Menu ditambahkan ke keranjang.'));
+        return $redirectTo
+            ? redirect()->to($redirectTo)->with('status', __('Menu ditambahkan ke keranjang.'))
+            : redirect()->route('home')->with('status', __('Menu ditambahkan ke keranjang.'));
     }
 
     public function update(Request $request, CartItem $item)
@@ -89,7 +116,7 @@ class CartController extends Controller
         return $this->respondWithCart($request, $cart, __('Keranjang dikosongkan.'));
     }
 
-    protected function respondWithCart(Request $request, Cart $cart, string $message)
+    protected function respondWithCart(Request $request, Cart $cart, string $message): RedirectResponse|JsonResponse
     {
         $cart = $cart->fresh(['items.menuItem.category']);
 
@@ -102,5 +129,14 @@ class CartController extends Controller
         }
 
         return back()->with('status', $message);
+    }
+
+    public function summary(Request $request): JsonResponse
+    {
+        $cart = $this->cartService->getActiveCart($request)->fresh('items');
+        return response()->json([
+            'subtotal' => $cart->subtotal,
+            'count' => (int) $cart->items->sum('quantity'),
+        ]);
     }
 }

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="840" viewBox="0 0 1440 840">
+  <style>
+    .frame{fill:#fff;stroke:#c0c0c0;stroke-width:2}
+    .header{fill:#ffffff;stroke:#d9d9d9;stroke-width:2}
+    .table{fill:#ffffff;stroke:#c8c8c8}
+    .text{font: 16px Arial, Helvetica, sans-serif; fill:#444}
+    .title{font:bold 20px Arial, Helvetica, sans-serif}
+    .muted{fill:#888; font:14px Arial, Helvetica, sans-serif}
+    .btn{fill:#e8e8ff;stroke:#8a8acc}
+  </style>
+  <rect class="frame" x="16" y="16" width="1408" height="808" rx="8"/>
+  <rect class="header" x="32" y="32" width="1376" height="80" rx="8"/>
+  <text class="title" x="64" y="82">Header · Orders History</text>
+
+  <text class="title" x="32" y="148">Riwayat Pesanan</text>
+  <rect class="table" x="32" y="164" width="1376" height="620" rx="10"/>
+  <text class="text" x="48" y="200">#ID | Tanggal | Meja | Total | Status | [Lihat]</text>
+  <text class="muted" x="48" y="230">… baris pesanan …</text>
+
+  <text class="muted" x="32" y="830">orders_history.svg — history wireframe</text>
+</svg>
+

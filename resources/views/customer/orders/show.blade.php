@@ -10,8 +10,8 @@
                     <span class="font-medium text-gray-900 dark:text-gray-100">{{ $order->status->label() }}</span>
                 </p>
             </div>
-            <a href="{{ route('customer.orders.history') }}" class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
-                {{ __('Kembali ke riwayat') }}
+            <a href="{{ route('catalog.index') }}" class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
+                {{ __('Kembali ke menu') }}
             </a>
         </div>
     </x-slot>

@@ -15,6 +15,12 @@ class OrderItem extends Model
         'quantity',
         'unit_price',
         'subtotal',
+        'temperature',
+        'sugar_level',
+        'ice_level',
+        'size',
+        'beans',
+        'milk_option',
         'notes',
     ];
 
@@ -22,6 +28,8 @@ class OrderItem extends Model
         'quantity' => 'integer',
         'unit_price' => 'decimal:2',
         'subtotal' => 'decimal:2',
+        'sugar_level' => 'integer',
+        'ice_level' => 'integer',
     ];
 
     protected static function booted(): void

@@ -21,6 +21,7 @@ class Order extends Model
         'customer_email',
         'customer_phone',
         'shop_table_id',
+        'table_number',
         'status',
         'payment_status',
         'total_amount',
@@ -42,6 +43,7 @@ class Order extends Model
         'paid_at' => 'datetime',
         'expires_at' => 'datetime',
         'payment_payload' => 'array',
+        'table_number' => 'integer',
     ];
 
     protected static function booted(): void

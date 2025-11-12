@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\MenuItem;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Http\JsonResponse;
 
 class CatalogController extends Controller
 {
@@ -26,10 +27,9 @@ class CatalogController extends Controller
             })
             ->orderByRaw('COALESCE(category_id, 0)')
             ->orderBy('name')
-            ->paginate(10)
-            ->withQueryString();
+            ->get();
 
-        $menuGroups = $menuItems->getCollection()
+        $menuGroups = $menuItems
             ->groupBy(function (MenuItem $item) {
                 return optional($item->category)->id ?? 'uncategorized';
             })
@@ -46,8 +46,51 @@ class CatalogController extends Controller
 
         return view('catalog.index', [
             'menuGroups' => $menuGroups,
-            'menuItems' => $menuItems,
             'search' => $search,
         ]);
+    }
+
+    public function show(MenuItem $menuItem): View
+    {
+        return view('catalog.show', [
+            'item' => $menuItem->load('category'),
+        ]);
+    }
+
+    // Live search endpoint: returns lightweight JSON results
+    public function lookup(Request $request): JsonResponse
+    {
+        $q = trim((string) $request->query('q', ''));
+
+        if (mb_strlen($q) < 2) {
+            return response()->json(['items' => []]);
+        }
+
+        $items = MenuItem::with('category')
+            ->active()
+            ->inStock()
+            ->where(function ($query) use ($q) {
+                $query->where('name', 'like', "%{$q}%")
+                    ->orWhere('description', 'like', "%{$q}%")
+                    ->orWhereHas('category', function ($cat) use ($q) {
+                        $cat->where('name', 'like', "%{$q}%");
+                    });
+            })
+            ->orderBy('name')
+            ->limit(8)
+            ->get();
+
+        $results = $items->map(function (MenuItem $item) {
+            return [
+                'id' => $item->id,
+                'name' => $item->name,
+                'price' => $item->price,
+                'image_url' => $item->image_url,
+                'category' => optional($item->category)->name,
+                'url' => route('catalog.show', $item),
+            ];
+        });
+
+        return response()->json(['items' => $results]);
     }
 }

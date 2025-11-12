@@ -10,20 +10,27 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\Customer\OrderController as CustomerOrderController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\MidtransWebhookController;
+use App\Http\Controllers\MidtransRedirectController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [CatalogController::class, 'index'])->name('home');
 Route::get('/menu', [CatalogController::class, 'index'])->name('catalog.index');
+Route::get('/menu/search', [CatalogController::class, 'lookup'])->name('catalog.search');
+Route::get('/menu/items/{menuItem}', [CatalogController::class, 'show'])->name('catalog.show');
 
 Route::post('/midtrans/webhook', MidtransWebhookController::class)->name('midtrans.webhook');
+Route::get('/midtrans/finish', [MidtransRedirectController::class, 'finish'])->name('midtrans.finish');
+Route::get('/midtrans/unfinish', [MidtransRedirectController::class, 'unfinish'])->name('midtrans.unfinish');
+Route::get('/midtrans/error', [MidtransRedirectController::class, 'error'])->name('midtrans.error');
 
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
 Route::put('/cart/items/{item}', [CartController::class, 'update'])->name('cart.items.update');
 Route::delete('/cart/items/{item}', [CartController::class, 'destroy'])->name('cart.items.destroy');
 Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
+Route::get('/cart/summary', [CartController::class, 'summary'])->name('cart.summary');
 
 Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
@@ -37,8 +44,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+// Route removed: public order history page is deprecated
+
 Route::middleware(['auth', 'verified', 'profile.completed', 'role:customer'])->group(function () {
-    Route::get('/orders/history', [CustomerOrderController::class, 'history'])->name('customer.orders.history');
     Route::get('/tables/{table:slug}/order', [CustomerOrderController::class, 'create'])->name('customer.orders.create');
     Route::post('/tables/{table:slug}/order', [CustomerOrderController::class, 'store'])->name('customer.orders.store');
     Route::get('/orders/{order}', [CustomerOrderController::class, 'show'])->name('customer.orders.show');

@@ -69,7 +69,17 @@ class CartService
             $menuItem = $item->menuItem;
 
             if ($menuItem instanceof MenuItem) {
-                $destination->addOrIncrementItem($menuItem, $item->quantity, $item->notes);
+                $destination->addOrIncrementItem(
+                    $menuItem,
+                    $item->quantity,
+                    $item->notes,
+                    $item->temperature,
+                    $item->sugar_level,
+                    $item->ice_level,
+                    $item->size,
+                    $item->beans,
+                    $item->milk_option,
+                );
             }
         });
 

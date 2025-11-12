@@ -9,7 +9,7 @@
                         {{ __('Pembayaran Pesanan') }} #{{ $order->order_number }}
                     </h1>
                     <p class="text-sm text-gray-600 dark:text-gray-300 max-w-2xl mx-auto sm:mx-0">
-                        {{ __('Scan QRIS berikut menggunakan aplikasi pembayaran favorit Anda. Halaman ini akan otomatis memperbarui status pesanan setelah pembayaran berhasil.') }}
+                        {{ __('Tekan tombol berikut untuk membuka halaman pembayaran Midtrans. Setelah selesai, status pesanan akan diperbarui otomatis.') }}
                     </p>
                 </div>
                 @if (session('status'))
@@ -22,29 +22,10 @@
                         {{ $errors->first() }}
                     </div>
                 @endif
-                @if (! $order->midtrans_token)
-                    <div class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-200">
-                        {{ __('Token pembayaran tidak tersedia. Silakan hubungi kasir untuk menyelesaikan pembayaran.') }}
-                    </div>
-                @else
-                    <div
-                        id="snap-container"
-                        class="rounded-2xl border border-dashed border-indigo-300 dark:border-indigo-500/60 bg-indigo-50/60 dark:bg-indigo-500/10 p-4 sm:p-6 min-h-[320px] flex items-center justify-center">
-                        <div class="text-center text-sm text-indigo-700 dark:text-indigo-200 space-y-2" id="snap-loading">
-                            <span class="font-semibold">{{ __('Memuat QRIS ...') }}</span>
-                            <p>{{ __('Jika tidak muncul dalam beberapa detik, periksa koneksi internet Anda lalu muat ulang halaman.') }}</p>
-                        </div>
-                    </div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400 text-center sm:text-left">
-                        {{ __('Kesulitan memindai?') }}
-                        @if ($order->midtrans_redirect_url)
-                            <a href="{{ $order->midtrans_redirect_url }}" target="_blank" rel="noopener" class="font-semibold text-indigo-600 hover:underline dark:text-indigo-300">
-                                {{ __('Buka halaman pembayaran di tab baru.') }}
-                            </a>
-                        @endif
-                        {{ __('Atau minta bantuan kasir kami.') }}
-                    </div>
-                @endif
+                <button id="pay-button"
+                        class="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition">
+                    {{ __('Bayar Sekarang') }}
+                </button>
 
                 <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/60 p-4 sm:p-5 text-sm text-gray-600 dark:text-gray-300 space-y-2">
                     <p>{{ __('Nama Pemesan:') }} <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $order->customer_name ?? '-' }}</span></p>
@@ -81,39 +62,69 @@
     <script src="{{ config('midtrans.snap_url', 'https://app.sandbox.midtrans.com/snap/snap.js') }}" data-client-key="{{ $midtransClientKey }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const snapContainer = document.querySelector('#snap-container');
+            const payButton = document.querySelector('#pay-button');
 
-            if (!snapContainer || typeof window.snap === 'undefined') {
+            if (!payButton) {
                 return;
             }
 
-            window.snap.embed('{{ $order->midtrans_token }}', {
-                embedId: 'snap-container',
-                onSuccess: function () {
-                    window.location.href = '{{ route('home') }}';
-                },
-                onPending: function () {
-                    window.location.href = '{{ route('home') }}';
-                },
-                onError: function () {
-                    alert('Pembayaran gagal. Silakan coba lagi atau hubungi kasir.');
-                },
-                onClose: function () {
-                    // no-op
-                }
-            });
+            const routes = {
+                finish: @json(route('midtrans.finish')),
+                unfinish: @json(route('midtrans.unfinish')),
+                error: @json(route('midtrans.error')),
+            };
+            const orderNumber = @json($order->order_number);
+            const shouldAutoLaunch = @json(request()->boolean('auto'));
 
-            const loadingState = document.querySelector('#snap-loading');
-            if (loadingState) {
-                const observer = new MutationObserver(() => {
-                    const hasChildPayment = snapContainer.querySelector('iframe, img, canvas');
-                    if (hasChildPayment) {
-                        loadingState.remove();
-                        observer.disconnect();
+            const redirectWith = (key, result = {}) => {
+                const base = routes[key] ?? routes.finish;
+                const url = new URL(base, window.location.origin);
+
+                if (orderNumber) {
+                    url.searchParams.set('order_id', orderNumber);
+                }
+
+                if (result.transaction_status) {
+                    url.searchParams.set('transaction_status', result.transaction_status);
+                }
+
+                if (result.status_message) {
+                    url.searchParams.set('status_message', result.status_message);
+                }
+
+                window.location.href = url.toString();
+            };
+
+            payButton.addEventListener('click', function () {
+                window.snap.pay('{{ $order->midtrans_token }}', {
+                    onSuccess: function (result) {
+                        redirectWith('finish', result);
+                    },
+                    onPending: function (result) {
+                        redirectWith('finish', result);
+                    },
+                    onError: function (result) {
+                        redirectWith('error', result);
+                    },
+                    onClose: function () {
+                        redirectWith('unfinish', { transaction_status: 'pending', status_message: 'Payment window closed by user' });
                     }
                 });
+            });
 
-                observer.observe(snapContainer, { childList: true, subtree: true });
+            if (shouldAutoLaunch) {
+                setTimeout(() => {
+                    payButton.click();
+
+                    try {
+                        const currentUrl = new URL(window.location.href);
+                        currentUrl.searchParams.delete('auto');
+                        const newSearch = currentUrl.searchParams.toString();
+                        window.history.replaceState({}, document.title, currentUrl.pathname + (newSearch ? `?${newSearch}` : '') + currentUrl.hash);
+                    } catch (error) {
+                        // ignore history failures
+                    }
+                }, 300);
             }
         });
     </script>

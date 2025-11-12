@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="880" viewBox="0 0 1440 880">
+  <style>
+    .frame{fill:#fff;stroke:#c0c0c0;stroke-width:2}
+    .header{fill:#ffffff;stroke:#d9d9d9;stroke-width:2}
+    .table{fill:#ffffff;stroke:#c8c8c8}
+    .btn{fill:#e8e8ff;stroke:#8a8acc}
+    .text{font: 16px Arial, Helvetica, sans-serif; fill:#444}
+    .title{font:bold 20px Arial, Helvetica, sans-serif}
+    .muted{fill:#888; font:14px Arial, Helvetica, sans-serif}
+  </style>
+  <rect class="frame" x="16" y="16" width="1408" height="848" rx="8"/>
+  <rect class="header" x="32" y="32" width="1376" height="80" rx="8"/>
+  <text class="title" x="64" y="82">Admin · Tables</text>
+
+  <g transform="translate(32,132)">
+    <rect class="btn" x="0" y="0" width="180" height="36" rx="18"/>
+    <text class="text" x="28" y="24">Tambah Meja</text>
+    <rect class="table" x="0" y="56" width="1376" height="740" rx="10"/>
+    <text class="text" x="20" y="92">Nama | Token | Status | [Regenerate Token] [Edit] [Delete]</text>
+  </g>
+
+  <text class="muted" x="32" y="870">admin_tables.svg — admin tables wireframe</text>
+</svg>
+

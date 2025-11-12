@@ -1,7 +1,7 @@
 @extends('layouts.public')
 
 @section('content')
-    <section class="py-10 sm:py-12">
+    <section class="py-6 sm:py-12">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
             <div class="flex flex-col gap-2 text-center sm:text-left">
                 <h1 class="text-3xl sm:text-4xl font-semibold text-gray-900 dark:text-gray-100">{{ __('Checkout') }}</h1>
@@ -23,7 +23,7 @@
                         <h2 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">{{ __('Informasi Kontak') }}</h2>
                         <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Isi data sesuai yang dapat dihubungi oleh barista saat pesanan siap.') }}</p>
                     </div>
-                    <form method="POST" action="{{ route('checkout.store') }}" class="space-y-5">
+                    <form method="POST" action="{{ route('checkout.store') }}" class="space-y-5" id="checkout-form">
                         @csrf
                         <div>
                             <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Nama Lengkap') }}</label>
@@ -55,6 +55,15 @@
                             </div>
                         </div>
                         <div>
+                            <label for="table_number" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Nomor Meja') }}</label>
+                            <input id="table_number" name="table_number" type="number" inputmode="numeric" min="1" required
+                                   value="{{ old('table_number') }}"
+                                   class="mt-1 block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100" />
+                            @error('table_number')
+                                <p class="mt-1 text-xs text-rose-600 dark:text-rose-400">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        <div>
                             <label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Catatan untuk Barista') }}</label>
                             <textarea id="notes" name="notes" rows="4"
                                       class="mt-1 block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100">{{ old('notes') }}</textarea>
@@ -63,11 +72,13 @@
                             @enderror
                         </div>
 
+                        <div data-checkout-error class="hidden rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs text-rose-700 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-200"></div>
+
                         <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
                             <p class="text-xs text-gray-500 dark:text-gray-400 sm:max-w-sm">
                                 {{ __('Dengan melanjutkan, Anda menyetujui pemrosesan data untuk kebutuhan pemesanan dan pembayaran.') }}
                             </p>
-                            <button type="submit"
+                            <button type="submit" data-checkout-submit
                                     class="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
                                 {{ __('Lanjutkan ke Pembayaran') }}
                             </button>
@@ -111,3 +122,141 @@
         </div>
     </section>
 @endsection
+
+@push('scripts')
+    <script src="{{ config('midtrans.snap_url', 'https://app.sandbox.midtrans.com/snap/snap.js') }}" data-client-key="{{ $midtransClientKey }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.querySelector('#checkout-form');
+            if (!form) {
+                return;
+            }
+
+            const submitButton = form.querySelector('[data-checkout-submit]');
+            const errorBox = form.querySelector('[data-checkout-error]');
+            const defaultErrorMessage = '{{ __('Tidak dapat memproses pembayaran. Silakan coba kembali.') }}';
+            const routes = @json($midtransRoutes);
+
+            form.addEventListener('submit', async (event) => {
+                if (!window.snap || typeof fetch === 'undefined') {
+                    return;
+                }
+
+                event.preventDefault();
+
+                if (errorBox) {
+                    errorBox.classList.add('hidden');
+                    errorBox.textContent = '';
+                }
+
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.classList.add('opacity-70', 'cursor-not-allowed');
+                }
+
+                let shouldReenable = true;
+
+                try {
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        body: new FormData(form),
+                    });
+
+                    const rawData = await response.json().catch(() => ({}));
+                    if (!response.ok) {
+                        let message = defaultErrorMessage;
+                        if (rawData && typeof rawData === 'object') {
+                            if (rawData.errors && typeof rawData.errors === 'object') {
+                                const firstKey = Object.keys(rawData.errors)[0] ?? null;
+                                if (firstKey && Array.isArray(rawData.errors[firstKey]) && rawData.errors[firstKey].length > 0) {
+                                    message = rawData.errors[firstKey][0];
+                                }
+                            } else if (rawData.message) {
+                                message = rawData.message;
+                            }
+                        }
+                        if (errorBox) {
+                            errorBox.textContent = message;
+                            errorBox.classList.remove('hidden');
+                        } else {
+                            alert(message);
+                        }
+                        if (response.headers.get('Content-Type')?.includes('text/html')) {
+                            window.location.reload();
+                        }
+                        return;
+                    }
+
+                    const data = rawData && typeof rawData === 'object' ? rawData : {};
+                    const midtransData = data.midtrans && typeof data.midtrans === 'object' ? data.midtrans : {};
+                    if (!midtransData.token) {
+                        const message = data.message ? data.message : '{{ __('Pesanan berhasil dibuat, namun pembayaran belum dapat diproses. Silakan hubungi kasir.') }}';
+                        if (errorBox) {
+                            errorBox.textContent = message;
+                            errorBox.classList.remove('hidden');
+                        } else {
+                            alert(message);
+                        }
+                        return;
+                    }
+
+                    const order = data.order && typeof data.order === 'object' ? data.order : {};
+                    const resultRoutes = midtransData.result_urls && typeof midtransData.result_urls === 'object' ? midtransData.result_urls : routes;
+                    const redirectWith = (key, result = {}) => {
+                        const base = (resultRoutes && resultRoutes[key]) ? resultRoutes[key] : ((resultRoutes && resultRoutes.finish) ? resultRoutes.finish : '{{ route('home') }}');
+                        try {
+                            const url = new URL(base, window.location.origin);
+                            if (order.number) {
+                                url.searchParams.set('order_id', order.number);
+                            }
+                            if (result && result.transaction_status) {
+                                url.searchParams.set('transaction_status', result.transaction_status);
+                            }
+                            if (result && result.status_message) {
+                                url.searchParams.set('status_message', result.status_message);
+                            }
+                            window.location.href = url.toString();
+                        } catch (error) {
+                            window.location.href = base;
+                        }
+                    };
+
+                    window.snap.pay(midtransData.token, {
+                        onSuccess: function (result) {
+                            redirectWith('finish', result);
+                        },
+                        onPending: function (result) {
+                            redirectWith('finish', result);
+                        },
+                        onError: function (result) {
+                            redirectWith('error', result);
+                        },
+                        onClose: function () {
+                            redirectWith('unfinish', {
+                                transaction_status: 'pending',
+                                status_message: 'Payment window closed by user',
+                            });
+                        }
+                    });
+                    shouldReenable = false;
+                } catch (error) {
+                    if (errorBox) {
+                        errorBox.textContent = defaultErrorMessage;
+                        errorBox.classList.remove('hidden');
+                    } else {
+                        alert(defaultErrorMessage);
+                    }
+                } finally {
+                    if (shouldReenable && submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.classList.remove('opacity-70', 'cursor-not-allowed');
+                    }
+                }
+            });
+        });
+    </script>
+@endpush

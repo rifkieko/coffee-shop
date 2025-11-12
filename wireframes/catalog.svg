@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1200" viewBox="0 0 1440 1200">
+  <style>
+    .frame{fill:#fff;stroke:#c0c0c0;stroke-width:2}
+    .header{fill:#ffffff;stroke:#d9d9d9;stroke-width:2}
+    .section{fill:#f7f7f7;stroke:#cfcfcf;stroke-width:2}
+    .chip{fill:#fff;stroke:#c9c9c9}
+    .card{fill:#ffffff;stroke:#bfbfbf;stroke-width:2}
+    .badge{fill:#ffe8b3;stroke:#f1c24c}
+    .btn{fill:#e8e8ff;stroke:#8a8acc}
+    .text{font: 16px Arial, Helvetica, sans-serif; fill:#444}
+    .title{font:bold 20px Arial, Helvetica, sans-serif}
+    .muted{fill:#888; font:14px Arial, Helvetica, sans-serif}
+  </style>
+  <rect class="frame" x="16" y="16" width="1408" height="1168" rx="8"/>
+
+  <!-- Header -->
+  <rect class="header" x="32" y="32" width="1376" height="80" rx="8"/>
+  <text class="title" x="64" y="82">Header · Catalog</text>
+
+  <!-- Info bar -->
+  <rect class="section" x="32" y="128" width="1376" height="96" rx="12"/>
+  <text class="title" x="56" y="170">Lokasi Kami</text>
+  <rect class="btn" x="1210" y="150" width="180" height="36" rx="18"/>
+  <text class="text" x="1240" y="174">Lihat Lokasi</text>
+
+  <!-- Notice -->
+  <rect class="section" x="32" y="236" width="1376" height="60" rx="12"/>
+  <text class="text" x="56" y="272">Scan QR di meja Anda untuk memasukkan nomor meja…</text>
+
+  <!-- Search -->
+  <rect class="section" x="32" y="312" width="1376" height="70" rx="36"/>
+  <text class="text" x="56" y="355">[ input pencarian ]</text>
+  <rect class="btn" x="1268" y="328" width="120" height="36" rx="18"/>
+  <text class="text" x="1306" y="352">Cari</text>
+
+  <!-- Category chips -->
+  <g transform="translate(32,400)">
+    <text class="title" x="24" y="-12">Kategori</text>
+    <rect class="chip" x="16" y="0" width="120" height="40" rx="20"/>
+    <rect class="chip" x="148" y="0" width="120" height="40" rx="20"/>
+    <rect class="chip" x="280" y="0" width="120" height="40" rx="20"/>
+    <rect class="chip" x="412" y="0" width="120" height="40" rx="20"/>
+    <rect class="chip" x="544" y="0" width="120" height="40" rx="20"/>
+    <text class="text" x="50" y="26">Semua</text>
+    <text class="text" x="182" y="26">Kopi</text>
+    <text class="text" x="314" y="26">Teh</text>
+    <text class="text" x="446" y="26">Snack</text>
+    <text class="text" x="578" y="26">Non-Kopi</text>
+  </g>
+
+  <!-- Grid of product cards (no stock count, no login text) -->
+  <g transform="translate(32,460)">
+    <text class="title" x="24" y="-16">Produk</text>
+    <!-- Row 1 -->
+    <g>
+      <rect class="card" x="16" y="0" width="320" height="360" rx="12"/>
+      <rect class="section" x="16" y="0" width="320" height="200" rx="12"/>
+      <rect class="badge" x="28" y="12" width="86" height="26" rx="13"/>
+      <text class="text" x="38" y="30">Terbatas</text>
+      <text class="title" x="32" y="232">Nama Menu</text>
+      <text class="muted" x="32" y="258">Deskripsi singkat menu…</text>
+      <text class="text" x="32" y="318">Rp17.000</text>
+      <rect class="btn" x="218" y="292" width="100" height="36" rx="18"/>
+      <text class="text" x="244" y="316">Tambah</text>
+    </g>
+    <g>
+      <rect class="card" x="356" y="0" width="320" height="360" rx="12"/>
+      <rect class="section" x="356" y="0" width="320" height="200" rx="12"/>
+      <text class="title" x="372" y="232">Nama Menu</text>
+      <text class="muted" x="372" y="258">Deskripsi singkat menu…</text>
+      <text class="text" x="372" y="318">Rp22.000</text>
+      <rect class="btn" x="558" y="292" width="100" height="36" rx="18"/>
+      <text class="text" x="584" y="316">Tambah</text>
+    </g>
+    <g>
+      <rect class="card" x="696" y="0" width="320" height="360" rx="12"/>
+      <rect class="section" x="696" y="0" width="320" height="200" rx="12"/>
+      <text class="title" x="712" y="232">Nama Menu</text>
+      <text class="muted" x="712" y="258">Deskripsi singkat menu…</text>
+      <text class="text" x="712" y="318">Rp25.000</text>
+      <rect class="btn" x="898" y="292" width="100" height="36" rx="18"/>
+      <text class="text" x="924" y="316">Tambah</text>
+    </g>
+    <g>
+      <rect class="card" x="1036" y="0" width="320" height="360" rx="12"/>
+      <rect class="section" x="1036" y="0" width="320" height="200" rx="12"/>
+      <text class="title" x="1052" y="232">Nama Menu</text>
+      <text class="muted" x="1052" y="258">Deskripsi singkat menu…</text>
+      <text class="text" x="1052" y="318">Rp30.000</text>
+      <rect class="btn" x="1238" y="292" width="100" height="36" rx="18"/>
+      <text class="text" x="1264" y="316">Tambah</text>
+    </g>
+    <!-- Row 2 (ghost) -->
+    <g opacity="0.65">
+      <rect class="card" x="16" y="380" width="320" height="360" rx="12"/>
+      <rect class="section" x="356" y="380" width="320" height="360" rx="12"/>
+      <rect class="card" x="696" y="380" width="320" height="360" rx="12"/>
+      <rect class="section" x="1036" y="380" width="320" height="360" rx="12"/>
+    </g>
+  </g>
+
+  <!-- Pagination -->
+  <g transform="translate(32,1110)">
+    <rect class="chip" x="600" y="0" width="40" height="36" rx="18"/>
+    <rect class="chip" x="650" y="0" width="40" height="36" rx="18"/>
+    <rect class="chip" x="700" y="0" width="40" height="36" rx="18"/>
+    <rect class="chip" x="750" y="0" width="40" height="36" rx="18"/>
+  </g>
+
+  <text class="muted" x="32" y="1188">catalog.svg — catalog wireframe (no stock count, no login notice)</text>
+</svg>
+

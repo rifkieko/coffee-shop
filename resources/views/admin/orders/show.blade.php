@@ -9,7 +9,8 @@
                     {{ __('Dibuat pada') }} {{ $order->created_at->format('d M Y H:i') }}
                 </p>
             </div>
-            <a href="{{ route('admin.orders.index') }}" class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
+            <a href="{{ route('admin.orders.index') }}" class="inline-flex items-center gap-1 text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
+                <x-icons.arrow-left class="w-4 h-4" />
                 {{ __('Kembali ke daftar') }}
             </a>
         </div>
@@ -93,6 +94,7 @@
                                         @endforeach
                                     </select>
                                     <x-primary-button>
+                                        <x-icons.check class="w-4 h-4 mr-2" />
                                         {{ __('Simpan') }}
                                     </x-primary-button>
                                 </form>
@@ -112,6 +114,7 @@
                                         @endforeach
                                     </select>
                                     <x-primary-button>
+                                        <x-icons.check class="w-4 h-4 mr-2" />
                                         {{ __('Simpan') }}
                                     </x-primary-button>
                                 </form>

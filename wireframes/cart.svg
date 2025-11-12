@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900">
+  <style>
+    .frame{fill:#fff;stroke:#c0c0c0;stroke-width:2}
+    .header{fill:#ffffff;stroke:#d9d9d9;stroke-width:2}
+    .section{fill:#f7f7f7;stroke:#cfcfcf;stroke-width:2}
+    .row{fill:#fff;stroke:#c8c8c8}
+    .btn{fill:#e8e8ff;stroke:#8a8acc}
+    .danger{fill:#ffe8e8;stroke:#cc8a8a}
+    .text{font: 16px Arial, Helvetica, sans-serif; fill:#444}
+    .title{font:bold 20px Arial, Helvetica, sans-serif}
+    .muted{fill:#888; font:14px Arial, Helvetica, sans-serif}
+  </style>
+  <rect class="frame" x="16" y="16" width="1408" height="868" rx="8"/>
+
+  <rect class="header" x="32" y="32" width="1376" height="80" rx="8"/>
+  <text class="title" x="64" y="82">Header · Cart</text>
+
+  <text class="title" x="32" y="148">Keranjang Anda</text>
+
+  <g transform="translate(32,164)">
+    <!-- item rows -->
+    <rect class="row" x="0" y="0" width="980" height="90" rx="10"/>
+    <text class="text" x="20" y="56">[IMG] Nama Menu — Rp17.000  [-] 1 [+]   Subtotal Rp17.000   [Hapus]</text>
+
+    <rect class="row" x="0" y="110" width="980" height="90" rx="10"/>
+    <text class="text" x="20" y="166">[IMG] Nama Menu — Rp22.000  [-] 2 [+]   Subtotal Rp44.000   [Hapus]</text>
+
+    <rect class="row" x="0" y="220" width="980" height="90" rx="10"/>
+    <text class="muted" x="20" y="276">…</text>
+
+    <!-- summary -->
+    <rect class="section" x="1000" y="0" width="376" height="200" rx="12"/>
+    <text class="title" x="1018" y="36">Ringkasan</text>
+    <text class="text" x="1018" y="70">Subtotal: Rp61.000</text>
+    <text class="text" x="1018" y="100">Pajak/Service: Rp0</text>
+    <text class="text" x="1018" y="130">Total: Rp61.000</text>
+    <rect class="btn" x="1018" y="150" width="180" height="36" rx="18"/>
+    <text class="text" x="1066" y="174">Checkout</text>
+    <rect class="danger" x="1210" y="150" width="150" height="36" rx="18"/>
+    <text class="text" x="1230" y="174">Kosongkan</text>
+  </g>
+
+  <text class="muted" x="32" y="880">cart.svg — cart wireframe</text>
+</svg>
+

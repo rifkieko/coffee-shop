@@ -25,7 +25,8 @@
                 </div>
             </div>
 
-            <div class="flex justify-end">
+            <!-- Desktop/Tablet CTA -->
+            <div class="hidden sm:flex justify-end">
                 @if ($cart->items->isNotEmpty())
                     <a href="{{ route('checkout.show') }}"
                        class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
@@ -38,8 +39,32 @@
                     </a>
                 @endif
             </div>
+
+            <!-- Mobile sticky CTA -->
+            <div class="sm:hidden">
+                @if ($cart->items->isNotEmpty())
+                    <div class="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white/95 backdrop-blur dark:border-gray-700 dark:bg-gray-900/95">
+                        <div class="mx-auto max-w-4xl px-4 py-3 flex items-center justify-between gap-3">
+                            <div class="text-sm">
+                                <div class="text-gray-500 dark:text-gray-400">{{ __('Total Keranjang') }}</div>
+                                <div class="text-base font-semibold text-gray-900 dark:text-gray-100" id="cart-mobile-total">
+                                    Rp{{ number_format($cart->subtotal, 0, ',', '.') }}
+                                </div>
+                            </div>
+                            <a href="{{ route('checkout.show') }}" class="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+                                {{ __('Checkout') }}
+                            </a>
+                        </div>
+                    </div>
+                    <div class="h-16"></div>
+                @else
+                    <div class="text-center">
+                        <a href="{{ route('home') }}" class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+                            {{ __('Mulai Belanja') }}
+                        </a>
+                    </div>
+                @endif
+            </div>
         </div>
     </section>
 @endsection
-
-@include('customer.cart.partials.scripts')

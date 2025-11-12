@@ -4,7 +4,8 @@
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 {{ __('Tambah Kategori') }}
             </h2>
-            <a href="{{ route('admin.categories.index') }}" class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
+            <a href="{{ route('admin.categories.index') }}" class="inline-flex items-center gap-1 text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
+                <x-icons.arrow-left class="w-4 h-4" />
                 {{ __('Kembali ke daftar') }}
             </a>
         </div>
@@ -50,10 +51,12 @@
 
                         <div class="flex justify-end gap-3">
                             <a href="{{ route('admin.categories.index') }}"
-                               class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                               class="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                <x-icons.x-mark class="w-4 h-4" />
                                 {{ __('Batal') }}
                             </a>
                             <x-primary-button>
+                                <x-icons.check class="w-4 h-4 mr-2" />
                                 {{ __('Simpan') }}
                             </x-primary-button>
                         </div>

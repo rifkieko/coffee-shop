@@ -19,7 +19,12 @@
 
                     <div class="bg-gray-50 dark:bg-gray-900/60 border border-gray-200 dark:border-gray-700 rounded-md p-4 text-sm text-gray-600 dark:text-gray-300 space-y-2">
                         <p>{{ __('Total Pembayaran:') }} <span class="font-semibold text-gray-900 dark:text-gray-100">Rp{{ number_format($order->total_amount, 0, ',', '.') }}</span></p>
-                        <p>{{ __('Pesanan untuk meja:') }} <span class="font-medium text-gray-900 dark:text-gray-100">{{ $order->table?->name ?? '-' }}</span></p>
+                        <p>
+                            {{ __('Pesanan untuk meja:') }}
+                            <span class="font-medium text-gray-900 dark:text-gray-100">
+                                {{ $order->table?->name ?? ($order->table_number ? 'Meja '.$order->table_number : '-') }}
+                            </span>
+                        </p>
                         <p>{{ __('Jika pembayaran gagal, Anda dapat mencoba lagi atau hubungi kasir.') }}</p>
                     </div>
 
@@ -67,38 +72,86 @@
 
     <script src="{{ config('midtrans.snap_url', 'https://app.sandbox.midtrans.com/snap/snap.js') }}" data-client-key="{{ $midtransClientKey }}"></script>
     <script>
-        const payButton = document.querySelector('#pay-button');
-        if (payButton) {
-            payButton.addEventListener('click', function () {
-                window.snap.pay('{{ $order->midtrans_token }}', {
-                    onSuccess: function (result) {
-                        logResult('success', result);
-                        window.location.href = '{{ route('customer.orders.show', $order) }}';
-                    },
-                    onPending: function (result) {
-                        logResult('pending', result);
-                        window.location.href = '{{ route('customer.orders.show', $order) }}';
-                    },
-                    onError: function (result) {
-                        logResult('error', result);
-                        alert('Pembayaran gagal. Silakan coba lagi atau hubungi kasir.');
-                    },
-                    onClose: function () {
-                        logResult('closed', {});
-                    }
-                });
-            });
-        }
-
-        function logResult(status, data) {
+        document.addEventListener('DOMContentLoaded', () => {
+            const payButton = document.querySelector('#pay-button');
             const logEl = document.querySelector('#payment-log');
-            if (!logEl) {
+
+            if (!payButton) {
                 return;
             }
 
-            const item = document.createElement('div');
-            item.textContent = `[${new Date().toLocaleTimeString()}] ${status.toUpperCase()}`;
-            logEl.appendChild(item);
-        }
+            const routes = {
+                finish: @json(route('midtrans.finish')),
+                unfinish: @json(route('midtrans.unfinish')),
+                error: @json(route('midtrans.error')),
+            };
+            const orderNumber = @json($order->order_number);
+            const shouldAutoLaunch = @json(request()->boolean('auto'));
+
+            const logResult = (status) => {
+                if (!logEl) {
+                    return;
+                }
+
+                const item = document.createElement('div');
+                item.textContent = `[${new Date().toLocaleTimeString()}] ${status.toUpperCase()}`;
+                logEl.appendChild(item);
+            };
+
+            const redirectWith = (key, result = {}) => {
+                const base = routes[key] ?? routes.finish;
+                const url = new URL(base, window.location.origin);
+
+                if (orderNumber) {
+                    url.searchParams.set('order_id', orderNumber);
+                }
+
+                if (result.transaction_status) {
+                    url.searchParams.set('transaction_status', result.transaction_status);
+                }
+
+                if (result.status_message) {
+                    url.searchParams.set('status_message', result.status_message);
+                }
+
+                window.location.href = url.toString();
+            };
+
+            payButton.addEventListener('click', function () {
+                window.snap.pay('{{ $order->midtrans_token }}', {
+                    onSuccess: function (result) {
+                        logResult('success');
+                        redirectWith('finish', result);
+                    },
+                    onPending: function (result) {
+                        logResult('pending');
+                        redirectWith('finish', result);
+                    },
+                    onError: function (result) {
+                        logResult('error');
+                        redirectWith('error', result);
+                    },
+                    onClose: function () {
+                        logResult('closed');
+                        redirectWith('unfinish', { transaction_status: 'pending', status_message: 'Payment window closed by user' });
+                    }
+                });
+            });
+
+            if (shouldAutoLaunch) {
+                setTimeout(() => {
+                    payButton.click();
+
+                    try {
+                        const currentUrl = new URL(window.location.href);
+                        currentUrl.searchParams.delete('auto');
+                        const newSearch = currentUrl.searchParams.toString();
+                        window.history.replaceState({}, document.title, currentUrl.pathname + (newSearch ? `?${newSearch}` : '') + currentUrl.hash);
+                    } catch (error) {
+                        // ignore history failures
+                    }
+                }, 300);
+            }
+        });
     </script>
 </x-app-layout>

@@ -13,11 +13,23 @@ class MidtransService
         MidtransConfig::$isProduction = config('midtrans.is_production');
         MidtransConfig::$isSanitized = true;
         MidtransConfig::$is3ds = true;
-        $timeout = config('midtrans.request_timeout', 30);
+        $timeout = (int) config('midtrans.request_timeout', 30);
 
-        MidtransConfig::$curlOptions = defined('CURLOPT_CONNECTTIMEOUT')
-            ? [CURLOPT_CONNECTTIMEOUT => $timeout]
-            : [];
+        if (defined('CURLOPT_CONNECTTIMEOUT')) {
+            MidtransConfig::$curlOptions[CURLOPT_CONNECTTIMEOUT] = $timeout;
+        }
+
+        if (! isset(MidtransConfig::$curlOptions[CURLOPT_HTTPHEADER])) {
+            MidtransConfig::$curlOptions[CURLOPT_HTTPHEADER] = [];
+        }
+
+        if (defined('CURLOPT_SSL_VERIFYPEER') && config('app.env') !== 'production') {
+            MidtransConfig::$curlOptions[CURLOPT_SSL_VERIFYPEER] = false;
+        }
+
+        if (defined('CURLOPT_SSL_VERIFYHOST') && config('app.env') !== 'production') {
+            MidtransConfig::$curlOptions[CURLOPT_SSL_VERIFYHOST] = 0;
+        }
     }
 
     /**
@@ -28,6 +40,14 @@ class MidtransService
      */
     public function createTransaction(array $payload): array
     {
-        return Snap::createTransaction($payload);
+        // Midtrans Snap::createTransaction returns a stdClass object.
+        // Caller code in the app expects an array, so convert the
+        // response to an array (recursively) before returning.
+        $response = Snap::createTransaction($payload);
+
+        // Convert stdClass (and nested objects) into associative arrays.
+        // Using json encode/decode is a simple and safe way here since
+        // the Midtrans response is JSON-serializable.
+        return json_decode(json_encode($response), true);
     }
 }

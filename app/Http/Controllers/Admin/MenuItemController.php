@@ -48,6 +48,10 @@ class MenuItemController extends Controller
             ? $request->file('image')->store('menu-items', 'public')
             : null;
 
+        if ($imagePath) {
+            $this->cropToFourThree(Storage::disk('public')->path($imagePath));
+        }
+
         $menuItem = MenuItem::create([
             'name' => $validated['name'],
             'slug' => $this->generateSlug($validated['name']),
@@ -95,6 +99,7 @@ class MenuItemController extends Controller
             }
 
             $imagePath = $request->file('image')->store('menu-items', 'public');
+            $this->cropToFourThree(Storage::disk('public')->path($imagePath));
         }
 
         $menuItem->update([
@@ -113,6 +118,89 @@ class MenuItemController extends Controller
 
         return redirect()->route('admin.menu-items.index')
             ->with('status', 'Menu berhasil diperbarui.');
+    }
+
+    /**
+     * Ensure uploaded image uses a consistent 4:3 aspect ratio (center-crop),
+     * optionally downscale to a reasonable max size.
+     */
+    private function cropToFourThree(string $absolutePath): void
+    {
+        try {
+            if (! function_exists('imagecreatetruecolor')) {
+                return; // GD not available; skip silently
+            }
+
+            $info = @getimagesize($absolutePath);
+            if (! $info) return;
+            [$width, $height] = $info;
+            $mime = $info['mime'] ?? '';
+
+            switch ($mime) {
+                case 'image/jpeg':
+                case 'image/pjpeg':
+                    $src = @imagecreatefromjpeg($absolutePath);
+                    $ext = 'jpg';
+                    break;
+                case 'image/png':
+                    $src = @imagecreatefrompng($absolutePath);
+                    $ext = 'png';
+                    break;
+                case 'image/webp':
+                    if (! function_exists('imagecreatefromwebp')) return;
+                    $src = @imagecreatefromwebp($absolutePath);
+                    $ext = 'webp';
+                    break;
+                default:
+                    return; // unsupported
+            }
+            if (! $src) return;
+
+                        // Center-crop to strict 4:3
+            $targetRatio = 4 / 3;
+            $currentRatio = $width / max(1, $height);
+            if ($currentRatio > $targetRatio) {
+                // too wide ? crop left/right
+                $cropW = (int) round($height * $targetRatio);
+                $cropH = $height;
+                $srcX = (int) floor(($width - $cropW) / 2);
+                $srcY = 0;
+            } else {
+                // too tall ? crop top/bottom
+                $cropW = $width;
+                $cropH = (int) round($width / $targetRatio);
+                $srcX = 0;
+                $srcY = (int) floor(($height - $cropH) / 2);
+            }
+
+            // Downscale output if very large
+            $maxW = 1600; $maxH = (int) round($maxW / $targetRatio);
+            $outW = min($cropW, $maxW);
+            $outH = min($cropH, $maxH);
+
+            $dst = imagecreatetruecolor($outW, $outH);
+            if ($ext === 'png' || $ext === 'webp') {
+                imagealphablending($dst, false);
+                imagesavealpha($dst, true);
+            }
+            imagecopyresampled($dst, $src, 0, 0, $srcX, $srcY, $outW, $outH, $cropW, $cropH);// Overwrite file
+            switch ($ext) {
+                case 'jpg':
+                    @imagejpeg($dst, $absolutePath, 85);
+                    break;
+                case 'png':
+                    @imagepng($dst, $absolutePath, 6);
+                    break;
+                case 'webp':
+                    if (function_exists('imagewebp')) @imagewebp($dst, $absolutePath, 85);
+                    break;
+            }
+
+            imagedestroy($dst);
+            imagedestroy($src);
+        } catch (\Throwable $e) {
+            // Fail silently; do not block uploads if processing fails
+        }
     }
 
     public function destroy(MenuItem $menuItem): RedirectResponse
@@ -185,3 +273,4 @@ class MenuItemController extends Controller
         }
     }
 }
+

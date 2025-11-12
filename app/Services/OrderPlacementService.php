@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
@@ -23,6 +24,100 @@ class OrderPlacementService
 {
     public function __construct(private MidtransService $midtransService)
     {
+    }
+
+    /**
+     * Place an order using cart items (preserving item options).
+     */
+    public function placeFromCart(
+        Request $request,
+        \App\Models\Cart $cart,
+        ?string $notes,
+        ?\App\Models\User $user,
+        array $customerData = [],
+        ?int $tableNumber = null,
+    ): Order {
+        $cart->load(['items.menuItem']);
+
+        if ($cart->items->isEmpty()) {
+            throw ValidationException::withMessages(['items' => 'Keranjang kosong.']);
+        }
+
+        [$order, $menuItems, $aggregated] = DB::transaction(function () use ($cart, $notes, $user, $customerData, $tableNumber) {
+            $menuItems = $cart->items->pluck('menuItem')->filter()->keyBy('id');
+            if ($menuItems->isEmpty()) {
+                throw ValidationException::withMessages(['items' => 'Menu tidak ditemukan.']);
+            }
+
+            // Aggregate quantities per menu for stock validation
+            $aggregated = $cart->items->groupBy('menu_item_id')->map(fn($group) => (int) $group->sum('quantity'));
+
+            foreach ($menuItems as $menuItem) {
+                if (! $menuItem->is_active) {
+                    throw ValidationException::withMessages(['items' => "Menu {$menuItem->name} tidak tersedia."]);
+                }
+                if ($menuItem->stock < ($aggregated[$menuItem->id] ?? 0)) {
+                    throw ValidationException::withMessages(['items' => "Stok menu {$menuItem->name} tidak mencukupi."]);
+                }
+            }
+
+            $baseData = [
+                'user_id' => $user?->id,
+                'customer_name' => $customerData['customer_name'] ?? $user?->name,
+                'customer_email' => $customerData['customer_email'] ?? $user?->email,
+                'customer_phone' => $customerData['customer_phone'] ?? $user?->phone,
+                'shop_table_id' => $cart->shop_table_id,
+                'status' => \App\Enums\OrderStatus::Pending,
+                'payment_status' => \App\Enums\PaymentStatus::Unpaid,
+                'notes' => $notes,
+            ];
+            // Graceful fallback if column not yet migrated
+            if (Schema::hasColumn('orders', 'table_number')) {
+                $baseData['table_number'] = $tableNumber;
+            } else {
+                if ($tableNumber) {
+                    $baseData['notes'] = trim(($notes ? ($notes.'; ') : '').'No. Meja: '.$tableNumber);
+                }
+            }
+
+            $order = Order::create($baseData);
+
+            $total = 0;
+            foreach ($cart->items as $item) {
+                $subtotal = $item->unit_price * $item->quantity;
+                $total += $subtotal;
+
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'menu_item_id' => $item->menu_item_id,
+                    'quantity' => $item->quantity,
+                    'unit_price' => $item->unit_price,
+                    'subtotal' => $subtotal,
+                    'temperature' => $item->temperature,
+                    'sugar_level' => $item->sugar_level,
+                    'ice_level' => $item->ice_level,
+                    'size' => $item->size,
+                    'beans' => $item->beans,
+                    'milk_option' => $item->milk_option,
+                    'notes' => $item->notes,
+                ]);
+            }
+
+            // Decrement stock by aggregated quantities
+            foreach ($menuItems as $menuItem) {
+                $menuItem->stock -= ($aggregated[$menuItem->id] ?? 0);
+                $menuItem->save();
+            }
+
+            $order->update(['total_amount' => $total]);
+
+            return [$order, $menuItems->values(), $aggregated];
+        });
+
+        // Build payload using aggregated quantities
+        $this->attachMidtransTransaction($request, $order, $menuItems, collect($aggregated), $user, $customerData);
+
+        return $order;
     }
 
     /**
@@ -226,7 +321,6 @@ class OrderPlacementService
                     'name' => $menuItem->name,
                 ];
             })->values()->all(),
-            'enabled_payments' => ['qris'],
             'callbacks' => [
                 'finish' => config('midtrans.callbacks.finish'),
                 'error' => config('midtrans.callbacks.error'),

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900">
+  <style>
+    .frame{fill:#fff;stroke:#c0c0c0;stroke-width:2}
+    .header{fill:#ffffff;stroke:#d9d9d9;stroke-width:2}
+    .panel{fill:#ffffff;stroke:#c8c8c8}
+    .text{font: 16px Arial, Helvetica, sans-serif; fill:#444}
+    .title{font:bold 20px Arial, Helvetica, sans-serif}
+    .muted{fill:#888; font:14px Arial, Helvetica, sans-serif}
+    .btn{fill:#e8e8ff;stroke:#8a8acc}
+  </style>
+  <rect class="frame" x="16" y="16" width="1408" height="868" rx="8"/>
+  <rect class="header" x="32" y="32" width="1376" height="80" rx="8"/>
+  <text class="title" x="64" y="82">Header · Order Detail</text>
+
+  <g transform="translate(32,132)">
+    <rect class="panel" x="0" y="0" width="940" height="720" rx="12"/>
+    <text class="title" x="20" y="36">Order #ABC123 · Status: ...</text>
+    <text class="text" x="20" y="72">Daftar items (nama, qty, harga)</text>
+
+    <rect class="panel" x="960" y="0" width="448" height="300" rx="12"/>
+    <text class="title" x="980" y="36">Ringkasan</text>
+    <text class="text" x="980" y="72">Total, pembayaran</text>
+    <rect class="btn" x="980" y="120" width="200" height="36" rx="18"/>
+    <text class="text" x="1028" y="144">Bayar (jika belum)</text>
+  </g>
+
+  <text class="muted" x="32" y="888">order_show.svg — order detail wireframe</text>
+</svg>
+

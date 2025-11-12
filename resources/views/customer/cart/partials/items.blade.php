@@ -1,4 +1,6 @@
-@php($items = $cart->items)
+@php
+    $items = $cart->items;
+@endphp
 
 <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
     <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ __('Ringkasan Keranjang') }}</h3>
@@ -26,13 +28,27 @@
             @foreach ($items as $item)
                 <div class="flex flex-col gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900 sm:flex-row sm:items-start sm:justify-between">
                     <div class="flex items-start gap-4">
-                        <img src="{{ $item->menuItem->image_url ?? 'https://via.placeholder.com/120x140?text=Menu' }}"
-                             alt="{{ $item->menuItem->name }}"
-                             class="h-24 w-24 rounded-lg object-cover object-center">
+                        <div style="aspect-ratio: 4 / 3" class="aspect-[4/3] w-24 flex-shrink-0 overflow-hidden rounded-lg border border-gray-200 bg-gray-100 dark:border-gray-700">
+                            <img src="{{ $item->menuItem->image_url ?? 'https://via.placeholder.com/120x140?text=Menu' }}"
+                                 alt="{{ $item->menuItem->name }}"
+                                 class="h-full w-full object-cover object-center">
+                        </div>
                         <div class="space-y-1">
                             <h4 class="text-base font-semibold text-gray-900 dark:text-gray-100">
                                 {{ $item->menuItem->name }}
                             </h4>
+                            @php
+                                $optionText = [];
+                                if ($item->temperature) { $optionText[] = ($item->temperature === 'hot' ? 'Panas' : 'Dingin'); }
+                                if ($item->size) { $optionText[] = ucfirst($item->size); }
+                                if ($item->beans) { $optionText[] = $item->beans; }
+                                if ($item->milk_option) { $optionText[] = $item->milk_option; }
+                                if (!is_null($item->sugar_level)) { $optionText[] = 'Gula '.$item->sugar_level.'%'; }
+                                if (!is_null($item->ice_level)) { $optionText[] = 'Es '.$item->ice_level.'%'; }
+                            @endphp
+                            @if (!empty($optionText))
+                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ implode(' • ', $optionText) }}</p>
+                            @endif
                             <p class="text-sm text-gray-500 dark:text-gray-400">
                                 Rp{{ number_format($item->unit_price, 0, ',', '.') }}
                             </p>
@@ -91,3 +107,5 @@
         </div>
     @endif
 </div>
+
+

@@ -81,7 +81,10 @@ class OrderController extends Controller
                 ->withErrors('Tidak dapat membuat transaksi pembayaran. Silakan hubungi kasir untuk melanjutkan.');
         }
 
-        return redirect()->route('customer.orders.payment', $order)
+        return redirect()->route('customer.orders.payment', [
+            'order' => $order,
+            'auto' => 1,
+        ])
             ->with('status', 'Pesanan berhasil dibuat. Silakan selesaikan pembayaran.');
     }
 
@@ -108,12 +111,51 @@ class OrderController extends Controller
 
     public function history(Request $request): View
     {
-        $orders = Order::with(['table'])
-            ->where('user_id', $request->user()?->id)
-            ->latest()
-            ->paginate(10);
+        $query = Order::with(['table'])->latest();
 
-        return view('customer.orders.history', compact('orders'));
+        if ($request->user()) {
+            $query->where('user_id', $request->user()->id);
+            $orders = $query->paginate(10)->withQueryString();
+
+            return view('customer.orders.history', [
+                'orders' => $orders,
+                'hasQuery' => true,
+            ]);
+        }
+
+        $hasQuery = false;
+        $orderNumber = trim((string) $request->query('order_number', ''));
+        $phoneRaw = trim((string) $request->query('phone', ''));
+        $phone = preg_replace('/\D+/', '', $phoneRaw);
+
+        if ($orderNumber !== '') {
+            $hasQuery = true;
+            $query->where('order_number', $orderNumber);
+        } elseif ($phone !== '') {
+            $hasQuery = true;
+            $query->where('customer_phone', $phone);
+        }
+
+        // Fallback to session-stored recent orders for guests
+        if (! $hasQuery) {
+            $recentIds = (array) $request->session()->get('recent_orders', []);
+            $lookupPhone = (string) $request->session()->get('order_lookup_phone', '');
+
+            if (!empty($recentIds)) {
+                $hasQuery = true;
+                $query->whereIn('id', $recentIds);
+            } elseif ($lookupPhone !== '') {
+                $hasQuery = true;
+                $query->where('customer_phone', $lookupPhone);
+            }
+        }
+
+        $orders = $hasQuery ? $query->paginate(10)->withQueryString() : collect();
+
+        return view('customer.orders.history', [
+            'orders' => $orders,
+            'hasQuery' => $hasQuery,
+        ]);
     }
 
     private function authorizeOrder(Order $order): void

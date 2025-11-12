@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="980" viewBox="0 0 1440 980">
+  <style>
+    .frame{fill:#fff;stroke:#c0c0c0;stroke-width:2}
+    .header{fill:#ffffff;stroke:#d9d9d9;stroke-width:2}
+    .panel{fill:#ffffff;stroke:#c8c8c8}
+    .text{font: 16px Arial, Helvetica, sans-serif; fill:#444}
+    .title{font:bold 20px Arial, Helvetica, sans-serif}
+    .muted{fill:#888; font:14px Arial, Helvetica, sans-serif}
+    .btn{fill:#e8e8ff;stroke:#8a8acc}
+  </style>
+  <rect class="frame" x="16" y="16" width="1408" height="948" rx="8"/>
+  <rect class="header" x="32" y="32" width="1376" height="80" rx="8"/>
+  <text class="title" x="64" y="82">Admin · Order Detail</text>
+
+  <g transform="translate(32,132)">
+    <rect class="panel" x="0" y="0" width="960" height="780" rx="12"/>
+    <text class="title" x="20" y="36">Order #ABC123</text>
+    <text class="text" x="20" y="72">Items, qty, harga</text>
+
+    <rect class="panel" x="980" y="0" width="428" height="240" rx="12"/>
+    <text class="title" x="1000" y="36">Update Status</text>
+    <text class="text" x="1000" y="72">Selesaikan / Proses / Batal</text>
+
+    <rect class="panel" x="980" y="260" width="428" height="240" rx="12"/>
+    <text class="title" x="1000" y="296">Update Pembayaran</text>
+    <text class="text" x="1000" y="332">Lunas / Pending / Gagal</text>
+  </g>
+
+  <text class="muted" x="32" y="968">admin_order_show.svg — admin order detail wireframe</text>
+</svg>
+
