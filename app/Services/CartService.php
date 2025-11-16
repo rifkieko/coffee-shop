@@ -73,12 +73,6 @@ class CartService
                     $menuItem,
                     $item->quantity,
                     $item->notes,
-                    $item->temperature,
-                    $item->sugar_level,
-                    $item->ice_level,
-                    $item->size,
-                    $item->beans,
-                    $item->milk_option,
                 );
             }
         });

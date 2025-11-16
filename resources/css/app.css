@@ -63,9 +63,7 @@
     max-width: 18rem;
     padding: 0.75rem 1rem;
     border-radius: 0.75rem;
-    /* Coffee primary: Darker Mocha */
-    /* Success toast for add-to-cart: emerald green */
-    background: rgba(16, 185, 129, 0.94); /* #10B981 */
+    background: rgba(16, 185, 129, 0.94); /* success: emerald */
     color: #fff;
     font-size: 0.875rem;
     font-weight: 600;
@@ -81,15 +79,40 @@
 }
 
 .cart-toast--error {
-    background: rgba(220, 38, 38, 0.95);
-    box-shadow: 0 18px 36px rgba(220, 38, 38, 0.22);
+    background: #fbcfe8;
+    color: #9f1239;
+    box-shadow: 0 18px 36px rgba(219, 39, 119, 0.22);
+}
+
+.cart-add-btn {
+    @apply inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition;
+    border-color: #1ec16b;
+    color: #1ec16b;
+    background-color: #fff !important;
+}
+.cart-add-btn:hover {
+    border-color: #1ebc6a;
+    color: #1ebc6a;
+    background-color: #fff !important;
+}
+.cart-add-btn:focus-visible,
+.cart-add-btn:active {
+    outline: none;
+    border-color: #1ec16b;
+    color: #1ec16b;
+    background-color: #fff !important;
+    box-shadow: 0 0 0 2px rgba(30, 193, 107, 0.2);
+}
+.cart-add-btn:visited {
+    color: #1ec16b;
+    background-color: #fff !important;
 }
 @layer components {
   .ui-card {
-    @apply flex h-full flex-col rounded-[28px] border border-[#e5e7eb] bg-white shadow-[0_10px_30px_rgba(42,26,19,0.08)] transition hover:-translate-y-1;
+    @apply flex h-full flex-col rounded-[12px] border border-[#e5e7eb] bg-white shadow-[0_10px_30px_rgba(42,26,19,0.08)] transition hover:-translate-y-1;
   }
   .ui-card img {
-    @apply h-52 w-full rounded-[28px] rounded-b-none object-cover;
+    @apply h-52 w-full rounded-[12px] rounded-b-none object-cover;
   }
   .ui-card-body { @apply flex flex-1 flex-col gap-2 p-4; }
   .ui-btn-primary { @apply inline-flex items-center justify-center gap-2 rounded-full bg-[#8C5A3A] px-5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#4C2B1C]; }
@@ -98,19 +121,44 @@
     @apply inline-flex items-center justify-center rounded-full border border-[#136b3c] px-6 py-1.5 text-sm font-semibold text-[#136b3c] hover:bg-[#136b3c] hover:text-white transition;
   }
   .ui-chip { @apply inline-flex items-center gap-2 rounded-full border border-[#f1d8c3] bg-white/90 px-4 py-1.5 text-xs font-semibold text-[#8c5a3a] shadow-sm; }
-  .ui-choose-btn { @apply inline-flex items-center justify-center rounded-full bg-emerald-500 px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-600; }
-  .ui-hero { @apply relative overflow-hidden rounded-[36px] border border-[#f1d8c3] bg-white px-6 py-6 shadow-[0_25px_60px_rgba(42,26,19,0.08)]; }
+  .ui-choose-btn { @apply inline-flex items-center justify-center rounded-full px-4 py-1.5 text-xs font-semibold text-white shadow-sm transition; background: #1ec16b; }
+  .ui-choose-btn:hover { background: #14a75c; }
+  .ui-hero { @apply relative overflow-hidden rounded-[28px] border border-[#e5e7eb] bg-white px-4 py-4 shadow-[0_20px_45px_rgba(15,23,42,0.1)]; }
   .ui-hero::after {
     content: '';
     position: absolute;
-    top: -40px;
-    right: -60px;
-    width: 200px;
-    height: 200px;
+    top: -16px;
+    right: -40px;
+    width: 120px;
+    height: 120px;
     border-radius: 999px;
-    background: #fdecd9;
-    opacity: 0.9;
+    background: #f3f4f6;
   }
   .ui-hero-badge { @apply inline-flex items-center gap-2 rounded-full bg-[#fff5eb] px-4 py-1 text-xs font-semibold text-[#b07b57]; }
   .ui-hero-link { @apply inline-flex items-center gap-2 rounded-full bg-[#fff5eb] px-5 py-2 text-sm font-semibold text-[#8c5a3a] shadow-sm transition hover:bg-[#ffe3ca]; }
+}
+
+body, .antialiased {
+  background: #fefefe;
+  color: #0f0f0f;
+}
+
+body, body * {
+  color: #0f0f0f !important;
+}
+
+header {
+  background: #ffffff;
+  border-color: #e5e7eb;
+  color: #0f0f0f;
+}
+
+header input, .lg\\:hidden .relative input {
+  background: #f4f4f4;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+.ui-card {
+  --tw-shadow-color: rgba(15,23,42,0.08);
 }

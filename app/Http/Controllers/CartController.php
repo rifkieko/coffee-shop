@@ -30,12 +30,6 @@ class CartController extends Controller
             'menu_item_id' => ['required', 'exists:menu_items,id'],
             'quantity' => ['required', 'integer', 'min:1'],
             'notes' => ['nullable', 'string', 'max:500'],
-            'temperature' => ['nullable', 'in:hot,cold'],
-            'sugar_level' => ['nullable', 'integer', 'in:0,25,50,75,100'],
-            'ice_level' => ['nullable', 'integer', 'in:0,25,50,75,100'],
-            'size' => ['nullable', 'in:regular,large,jumbo'],
-            'beans' => ['nullable', 'string', 'max:40'],
-            'milk_option' => ['nullable', 'string', 'max:40'],
             'redirect_to' => ['nullable', 'url'],
         ]);
 
@@ -53,17 +47,12 @@ class CartController extends Controller
             $menuItem,
             $validated['quantity'],
             $validated['notes'] ?? null,
-            $validated['temperature'] ?? null,
-            $validated['sugar_level'] ?? null,
-            $validated['ice_level'] ?? null,
-            $validated['size'] ?? null,
-            $validated['beans'] ?? null,
-            $validated['milk_option'] ?? null,
         );
 
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => __('Menu ditambahkan ke keranjang.'),
+                'variant' => 'success',
                 'subtotal' => $cart->subtotal,
                 'redirect' => $redirectTo,
             ]);
@@ -95,7 +84,7 @@ class CartController extends Controller
 
         $cart->recalculateTotals();
 
-        return $this->respondWithCart($request, $cart, __('Keranjang diperbarui.'));
+        return $this->respondWithCart($request, $cart, __('Keranjang diperbarui.'), 'success');
     }
 
     public function destroy(Request $request, CartItem $item)
@@ -105,7 +94,7 @@ class CartController extends Controller
 
         $cart->removeItem($item);
 
-        return $this->respondWithCart($request, $cart, __('Menu dihapus dari keranjang.'));
+        return $this->respondWithCart($request, $cart, __('Menu dihapus dari keranjang.'), 'error');
     }
 
     public function clear(Request $request)
@@ -113,16 +102,17 @@ class CartController extends Controller
         $cart = $this->cartService->getActiveCart($request);
         $cart->clear();
 
-        return $this->respondWithCart($request, $cart, __('Keranjang dikosongkan.'));
+        return $this->respondWithCart($request, $cart, __('Keranjang dikosongkan.'), 'success');
     }
 
-    protected function respondWithCart(Request $request, Cart $cart, string $message): RedirectResponse|JsonResponse
+    protected function respondWithCart(Request $request, Cart $cart, string $message, string $variant = 'success'): RedirectResponse|JsonResponse
     {
         $cart = $cart->fresh(['items.menuItem.category']);
 
         if ($request->expectsJson()) {
             return response()->json([
                 'message' => $message,
+                'variant' => $variant,
                 'html' => view('customer.cart.partials.items', ['cart' => $cart])->render(),
                 'subtotal' => $cart->subtotal,
             ]);

@@ -93,12 +93,6 @@ class OrderPlacementService
                     'quantity' => $item->quantity,
                     'unit_price' => $item->unit_price,
                     'subtotal' => $subtotal,
-                    'temperature' => $item->temperature,
-                    'sugar_level' => $item->sugar_level,
-                    'ice_level' => $item->ice_level,
-                    'size' => $item->size,
-                    'beans' => $item->beans,
-                    'milk_option' => $item->milk_option,
                     'notes' => $item->notes,
                 ]);
             }

@@ -115,11 +115,6 @@
 
                     <!-- Mobile quick actions: Search + Cart + Hamburger (auth in mobile menu) -->
                     <div class="flex items-center gap-2 lg:hidden">
-                        <button type="button" class="rounded-full p-2 text-[#4C2B1C] hover:bg-[#F5E6D3]" title="{{ __('Search menu') }}" onclick="window.location.href='{{ route('catalog.index') }}#search'">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z" />
-                            </svg>
-                        </button>
                         <a href="{{ route('cart.index') }}" data-cart-indicator class="rounded-full p-2 text-[#4C2B1C] hover:bg-[#F5E6D3]" title="{{ __('Cart') }}">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2m0 0h13.2l1.2 6.5a1 1 0 01-1 1.17H7.53m-2.13-7.67L7.53 17h9.94m0 0a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 103 0m-9.94 0a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0" />
@@ -247,7 +242,7 @@
 
         <main class="flex-1">
             @if (session('status'))
-                <div class="bg-emerald-500/10 border border-emerald-200 text-emerald-700 dark:bg-emerald-500/20 dark:border-emerald-500/30 dark:text-emerald-200">
+                <div id="global-status-alert" class="bg-emerald-500/10 border border-emerald-200 text-emerald-700 dark:bg-emerald-500/20 dark:border-emerald-500/30 dark:text-emerald-200">
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 text-sm">
                         {{ session('status') }}
                     </div>
@@ -328,7 +323,7 @@
                                 <p id="mini-cart-total" class="text-base font-semibold text-[#2A1A13]">Rp0</p>
                             </div>
                         </div>
-                        <a href="{{ route('cart.index') }}" class="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500">
+                        <a href="{{ route('cart.index') }}" class="inline-flex items-center gap-2 rounded-full bg-[#1ec16b] px-5 py-2 text-sm font-semibold text-white shadow hover:bg-[#14a75c] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1ec16b]">
                             {{ __('Lihat Keranjang') }}
                         </a>
                     </div>
@@ -336,5 +331,16 @@
             </div>
         @endif
         @stack('scripts')
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const alert = document.getElementById('global-status-alert');
+                if (!alert) {
+                    return;
+                }
+                setTimeout(() => {
+                    alert.remove();
+                }, 2000);
+            });
+        </script>
     </body>
 </html>

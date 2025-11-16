@@ -1,12 +1,12 @@
 @extends('layouts.public')
 
 @section('content')
-<section class="bg-white pb-16">
-    <div class="mx-auto max-w-6xl px-4 pt-8 sm:px-6 lg:px-8">
-        <div class="space-y-10">
+<section class="bg-white">
+    <div class="mx-auto max-w-6xl px-4 pt-4 pb-12 sm:px-6 lg:px-8 sm:pt-8 sm:pb-16">
+        <div class="space-y-6 sm:space-y-10">
             <div class="ui-hero">
-                <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div class="space-y-2">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="space-y-1.5 sm:space-y-2">
                         <span class="ui-hero-badge">
                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 21s-6-4.35-6-9a6 6 0 1112 0c0 4.65-6 9-6 9z" />
@@ -19,23 +19,6 @@
                     </div>
                 </div>
             </div>
-
-            <form method="GET" action="{{ route('home') }}" class="ml-auto max-w-md">
-                <label for="catalog-search" class="sr-only">Cari menu</label>
-                <div class="flex items-center gap-2 rounded-full border border-[#f1d8c3] bg-white px-3 py-1 shadow-sm">
-                    <input
-                        id="catalog-search"
-                        name="q"
-                        type="search"
-                        value="{{ $search }}"
-                        placeholder="Cari menu favoritmu..."
-                        class="flex-1 border-none bg-transparent px-2 py-2 text-sm text-[#4C2B1C] focus:ring-0"
-                    >
-                    <button type="submit" class="inline-flex items-center rounded-full bg-[#b07b57] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#8c5a3a]">
-                        {{ __('Cari') }}
-                    </button>
-                </div>
-            </form>
 
             <div class="flex flex-wrap gap-3 text-sm font-medium text-[#6b5445]">
                 @foreach ($menuGroups as $group)
@@ -64,7 +47,6 @@
                             <p class="text-xs font-semibold uppercase tracking-[0.4em] text-[#b07b57]">Kategori</p>
                             <div class="flex items-center justify-between">
                                 <h2 class="text-2xl font-semibold text-[#2A1A13]">{{ $categoryName }}</h2>
-                                <span class="hidden text-xs text-[#8c5a3a] sm:block">{{ $items->count() }} pilihan</span>
                             </div>
                             <p class="text-sm text-[#6b5445]">{{ $categoryDescription }}</p>
                         </div>

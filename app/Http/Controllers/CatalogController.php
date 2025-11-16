@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\MenuItem;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
+use Illuminate\View\View;
 
 class CatalogController extends Controller
 {
@@ -14,8 +15,9 @@ class CatalogController extends Controller
         $search = $request->query('q');
 
         $menuItems = MenuItem::with('category')
-            ->active()
-            ->inStock()
+            ->when(!$search, function ($query) {
+                $query->active()->inStock();
+            })
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($inner) use ($search) {
                     $inner->where('name', 'like', '%'.$search.'%')
@@ -24,6 +26,9 @@ class CatalogController extends Controller
                             $categoryQuery->where('name', 'like', '%'.$search.'%');
                         });
                 });
+            })
+            ->when($search, function ($query) {
+                $query->orderByRaw('CASE WHEN is_active AND stock > 0 THEN 0 ELSE 1 END');
             })
             ->orderByRaw('COALESCE(category_id, 0)')
             ->orderBy('name')
@@ -61,23 +66,26 @@ class CatalogController extends Controller
     public function lookup(Request $request): JsonResponse
     {
         $q = trim((string) $request->query('q', ''));
+        $limit = (int) $request->integer('limit', 150);
+        $limit = max(10, min($limit, 300));
+        $like = DB::connection()->getDriverName() === 'pgsql' ? 'ilike' : 'like';
 
-        if (mb_strlen($q) < 2) {
+        if ($q === '' || mb_strlen($q) < 1) {
             return response()->json(['items' => []]);
         }
 
         $items = MenuItem::with('category')
-            ->active()
-            ->inStock()
-            ->where(function ($query) use ($q) {
-                $query->where('name', 'like', "%{$q}%")
-                    ->orWhere('description', 'like', "%{$q}%")
-                    ->orWhereHas('category', function ($cat) use ($q) {
-                        $cat->where('name', 'like', "%{$q}%");
+            ->where(function ($query) use ($q, $like) {
+                $query->where('name', $like, "%{$q}%")
+                    ->orWhere('slug', $like, "%{$q}%")
+                    ->orWhere('description', $like, "%{$q}%")
+                    ->orWhereHas('category', function ($cat) use ($q, $like) {
+                        $cat->where('name', $like, "%{$q}%");
                     });
             })
+            ->orderByRaw('CASE WHEN is_active THEN 0 ELSE 1 END')
             ->orderBy('name')
-            ->limit(8)
+            ->limit($limit)
             ->get();
 
         $results = $items->map(function (MenuItem $item) {

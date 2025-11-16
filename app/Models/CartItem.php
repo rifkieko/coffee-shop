@@ -13,20 +13,12 @@ class CartItem extends Model
         'menu_item_id',
         'quantity',
         'unit_price',
-        'temperature',
-        'sugar_level',
-        'ice_level',
-        'size',
-        'beans',
-        'milk_option',
         'notes',
     ];
 
     protected $casts = [
         'quantity' => 'integer',
         'unit_price' => 'decimal:2',
-        'sugar_level' => 'integer',
-        'ice_level' => 'integer',
     ];
 
     protected $appends = ['subtotal'];

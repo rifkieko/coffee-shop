@@ -53,10 +53,11 @@
                 toast.classList.add('is-visible');
             });
 
+            const toastTimeout = 3000;
             window.setTimeout(() => {
                 toast.classList.remove('is-visible');
                 toast.addEventListener('transitionend', () => toast.remove(), { once: true });
-            }, 2800);
+            }, toastTimeout);
             // Ensure mini cart bar is visible after add
             if (variant !== 'error') {
                 const bar = document.getElementById('mini-cart-bar');
@@ -169,7 +170,7 @@
                 }
 
                 if (data.message) {
-                    showCartToast(data.message);
+                    showCartToast(data.message, data.variant ?? 'success');
                 }
                 if (typeof data.subtotal !== 'undefined') {
                     const bar = document.getElementById('mini-cart-bar');
@@ -216,6 +217,66 @@
                 const form = target.closest('[data-cart-form]');
                 if (!form) return;
                 form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            const button = event.target.closest('[data-quantity-adjust]');
+            if (!button) {
+                return;
+            }
+
+            const form = button.closest('form[data-cart-form]');
+            if (!form) {
+                return;
+            }
+
+            const input = form.querySelector('input[name="quantity"]');
+            if (!input) {
+                return;
+            }
+
+            const delta = parseInt(button.dataset.quantityAdjust, 10);
+            const current = parseInt(input.value, 10) || 1;
+            const next = Math.max(1, current + delta);
+
+            input.value = next;
+            const display = form.querySelector('[data-quantity-display]');
+            if (display) {
+                display.textContent = next;
+            }
+            const row = button.closest('[data-note-row]');
+            if (row) {
+                const noteQty = row.querySelector('[data-note-quantity]');
+                if (noteQty) {
+                    noteQty.value = next;
+                }
+            }
+            autoSubmitQuantity(input);
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+        });
+
+        document.addEventListener('click', (event) => {
+            const toggle = event.target.closest('[data-note-toggle]');
+            if (!toggle) {
+                return;
+            }
+
+            const row = toggle.closest('[data-note-row]');
+            if (!row) {
+                return;
+            }
+
+            const panel = row.querySelector('[data-note-panel]');
+            if (!panel) {
+                return;
+            }
+
+            panel.classList.toggle('hidden');
+            if (!panel.classList.contains('hidden')) {
+                const textarea = panel.querySelector('textarea');
+                textarea?.focus();
             }
         });
 

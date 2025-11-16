@@ -46,28 +46,28 @@ class Cart extends Model
         return $query->where('status', self::STATUS_ACTIVE);
     }
 
-    public function addOrIncrementItem(MenuItem $menuItem, int $quantity = 1, ?string $notes = null, ?string $temperature = null, ?int $sugarLevel = null, ?int $iceLevel = null, ?string $size = null, ?string $beans = null, ?string $milkOption = null): CartItem
+    public function addOrIncrementItem(MenuItem $menuItem, int $quantity = 1, ?string $notes = null): CartItem
     {
-        $query = $this->items()->where('menu_item_id', $menuItem->id);
-        if ($temperature !== null) { $query->where('temperature', $temperature); }
-        else { $query->whereNull('temperature'); }
-        if ($sugarLevel !== null) { $query->where('sugar_level', $sugarLevel); }
-        else { $query->whereNull('sugar_level'); }
-        if ($iceLevel !== null) { $query->where('ice_level', $iceLevel); }
-        else { $query->whereNull('ice_level'); }
-        if ($size !== null) { $query->where('size', $size); }
-        else { $query->whereNull('size'); }
-        if ($beans !== null) { $query->where('beans', $beans); }
-        else { $query->whereNull('beans'); }
-        if ($milkOption !== null) { $query->where('milk_option', $milkOption); }
-        else { $query->whereNull('milk_option'); }
+        $normalizedNotes = $notes ? trim($notes) : null;
+        if ($normalizedNotes === '') {
+            $normalizedNotes = null;
+        }
+
+        $query = $this->items()
+            ->where('menu_item_id', $menuItem->id);
+
+        if ($normalizedNotes === null) {
+            $query->whereNull('notes');
+        } else {
+            $query->where('notes', $normalizedNotes);
+        }
 
         $cartItem = $query->first();
 
         if ($cartItem) {
             $cartItem->increment('quantity', $quantity);
-            if ($notes) {
-                $cartItem->notes = $notes;
+            if ($normalizedNotes) {
+                $cartItem->notes = $normalizedNotes;
                 $cartItem->save();
             }
         } else {
@@ -75,16 +75,7 @@ class Cart extends Model
                 'menu_item_id' => $menuItem->id,
                 'quantity' => $quantity,
                 'unit_price' => $menuItem->price,
-                'temperature' => $temperature,
-                'sugar_level' => $sugarLevel,
-                'ice_level' => $iceLevel,
-                'temperature' => $temperature,
-                'sugar_level' => $sugarLevel,
-                'ice_level' => $iceLevel,
-                'size' => $size,
-                'beans' => $beans,
-                'milk_option' => $milkOption,
-                'notes' => $notes,
+                'notes' => $normalizedNotes,
             ]);
         }
 
