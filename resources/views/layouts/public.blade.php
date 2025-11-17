@@ -17,7 +17,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="antialiased font-sans bg-white dark:bg-gray-900 text-[#2A1A13] dark:text-gray-100 min-h-screen flex flex-col">
-                <header x-data="{ mobileOpen: false, q: @js(request('q')) }" class="sticky top-0 z-40 border-b border-[#ECC9A8] bg-white/90 backdrop-blur">
+                <header x-data="{ mobileOpen: false, q: @js(request('q')) }" class="sticky top-0 z-40 border-b border-black/20 bg-white/90 backdrop-blur">
             @php
                 // Navigation links intentionally disabled per request.
                 $primaryLinks = [];
@@ -26,7 +26,7 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex h-16 sm:h-20 items-center justify-between gap-4 sm:gap-6">
                     <a href="{{ route('home') }}" class="flex items-center gap-3">
-                        <img src="{{ asset('images/palas-logo.png') }}" alt="Palas Kopi" class="h-10 w-10 rounded-full bg-white object-contain ring-1 ring-[#ECC9A8]">
+                        <img src="{{ asset('images/palas-logo.png') }}" alt="Palas Kopi" class="h-10 w-10 rounded-full bg-white object-contain ring-1 ring-black/20">
                         <span class="text-lg sm:text-xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
                             {{ config('app.name', "Pala's Kopi") }}
                         </span>
@@ -46,11 +46,11 @@
                         <div class="relative" x-data="liveSearch('{{ route('catalog.search') }}')" @click.outside="open=false">
                             <input x-model="q" @input="type()" @focus="open = (results.length>0)" @keydown.down.prevent="move(1)" @keydown.up.prevent="move(-1)" @keydown.enter.prevent="enter()"
                                    type="text" placeholder="{{ __('Cari menu, kategori, atau deskripsi...') }}"
-                                   class="w-72 rounded-full border border-[#ECC9A8] bg-white/95 pl-9 pr-4 py-2 text-sm placeholder-[#8C5A3A]/60 focus:border-[#C58A53] focus:ring-2 focus:ring-[#ECC9A8]" />
+                                   class="w-72 rounded-full border border-black/20 bg-white/95 pl-9 pr-4 py-2 text-sm text-black placeholder-black/60 focus:border-black/60 focus:ring-2 focus:ring-black/30" />
                             <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8C5A3A]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z" />
                             </svg>
-                            <div x-cloak x-show="open" class="absolute z-50 mt-2 w-[28rem] max-h-80 overflow-auto rounded-2xl border border-[#ECC9A8] bg-white shadow-lg">
+                            <div x-cloak x-show="open" class="absolute z-50 mt-2 w-[28rem] max-h-80 overflow-auto rounded-2xl border border-black/20 bg-white shadow-lg">
                                 <template x-if="loading">
                                     <div class="p-3 text-sm text-[#8C5A3A]">{{ __('Mencari...') }}</div>
                                 </template>
@@ -120,32 +120,65 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2m0 0h13.2l1.2 6.5a1 1 0 01-1 1.17H7.53m-2.13-7.67L7.53 17h9.94m0 0a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 103 0m-9.94 0a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0" />
                             </svg>
                         </a>
-                        <button type="button" class="inline-flex items-center justify-center rounded-full border border-transparent p-2 text-[#4C2B1C] transition hover:bg-[#F5E6D3]"
-                            @click="mobileOpen = !mobileOpen"
-                            aria-controls="mobile-menu"
-                            :aria-expanded="mobileOpen.toString()">
-                            <svg x-show="!mobileOpen" class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                            </svg>
-                            <svg x-show="mobileOpen" x-cloak class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
+                        <div class="relative" x-data @click.outside="$root.mobileOpen = false" @keydown.escape.window="$root.mobileOpen = false">
+                            <button type="button"
+                                class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent p-2 text-[#4C2B1C] transition hover:bg-[#F5E6D3]"
+                                @click="mobileOpen = !mobileOpen"
+                                aria-controls="mobile-auth-overlay"
+                                :aria-expanded="mobileOpen.toString()"
+                                aria-label="{{ __('Tampilkan menu akun') }}">
+                                <svg x-show="!mobileOpen" class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                                </svg>
+                                <svg x-show="mobileOpen" x-cloak class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                            <div x-cloak x-show="mobileOpen" x-transition.origin.top.right
+                                 id="mobile-auth-overlay"
+                                 class="absolute right-0 top-full z-40 mt-2 w-48 min-w-[12rem] rounded-[18px] border border-black/20 bg-white/95 px-4 py-3 shadow-[0_16px_30px_rgba(15,15,30,0.1)] text-sm text-[#4C2B1C]">
+                                @auth
+                                    <div class="space-y-3">
+                                        <div class="text-sm font-semibold">{{ auth()->user()->name }}</div>
+                                        <form method="POST" action="{{ route('logout') }}">
+                                            @csrf
+                                            <button type="submit"
+                                                class="w-full rounded-full border border-[#8C5A3A] px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#8C5A3A] transition hover:bg-[#8C5A3A] hover:text-white">
+                                                {{ __('Keluar') }}
+                                            </button>
+                                        </form>
+                                    </div>
+                                @else
+                                    <div class="space-y-2">
+                                        <a href="{{ route('register') }}"
+                                           class="inline-flex items-center justify-center rounded-full border border-[#8C5A3A] px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#8C5A3A] transition hover:bg-[#8C5A3A] hover:text-white"
+                                           @click="mobileOpen = false">
+                                            {{ __('Register') }}
+                                        </a>
+                                        <a href="{{ route('login') }}"
+                                           class="inline-flex items-center justify-center rounded-full bg-[#8C5A3A] px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white transition hover:bg-[#4C2B1C]"
+                                           @click="mobileOpen = false">
+                                            {{ __('Sign in') }}
+                                        </a>
+                                    </div>
+                                @endauth
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Mobile search bar under header (always visible on mobile) -->
-            <div class="lg:hidden border-t border-[#ECC9A8] bg-white/98">
+            <div class="lg:hidden border-t border-black/20 bg-white/98">
                 <div class="max-w-7xl mx-auto px-4 py-3">
                     <div class="relative" x-data="liveSearch('/menu/search')" @click.outside="open=false">
                         <input x-model="q" @input="type()" @focus="open = (results.length>0)" @keydown.down.prevent="move(1)" @keydown.up.prevent="move(-1)" @keydown.enter.prevent="enter()"
                                type="text" placeholder="Cari menu..."
-                               class="flex-1 w-full rounded-full border border-[#ECC9A8] bg-white/95 pl-9 pr-4 py-2 text-sm placeholder-[#8C5A3A]/60 focus:border-[#C58A53] focus:ring-2 focus:ring-[#ECC9A8]" />
+                               class="flex-1 w-full rounded-full border border-black/20 bg-white/95 pl-9 pr-4 py-2 text-sm text-black placeholder-black/60 focus:border-black/60 focus:ring-2 focus:ring-black/30" />
                         <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8C5A3A]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z" />
                         </svg>
-                        <div x-cloak x-show="open" class="absolute z-50 mt-2 w-full max-h-80 overflow-auto rounded-2xl border border-[#ECC9A8] bg-white shadow-lg">
+                        <div x-cloak x-show="open" class="absolute z-50 mt-2 w-full max-h-80 overflow-auto rounded-2xl border border-black/20 bg-white shadow-lg">
                             <template x-if="loading">
                                 <div class="p-3 text-sm text-[#8C5A3A]">Mencari...</div>
                             </template>
@@ -166,78 +199,6 @@
                 </div>
             </div>
 
-            <nav id="mobile-menu"
-                 x-cloak
-                 x-show="mobileOpen"
-                 x-transition
-                class="lg:hidden border-t border-[#ECC9A8] bg-white/98 px-3 py-3 text-[#8C5A3A] text-sm">
-                <div class="space-y-2 text-sm font-medium">
-                    @foreach ($primaryLinks as $link)
-                        <a href="{{ $link['route'] }}"
-                           class="flex items-center justify-between rounded-xl px-4 py-3 transition {{ $link['active'] ? 'bg-[#F5E6D3] text-[#4C2B1C]' : 'hover:bg-[#F5E6D3] hover:text-[#4C2B1C]' }}">
-                            <span>{{ $link['label'] }}</span>
-                            @if ($link['active'])
-                                <span class="h-1 w-1 rounded-full bg-[#C58A53]"></span>
-                            @endif
-                        </a>
-                    @endforeach
-                </div>
-                <div class="mt-4 flex items-center gap-3 border-t border-[#ECC9A8] pt-4">
-                    <div class="relative flex-1" x-data="liveSearch('/menu/search')" @click.outside="open=false">
-                        <input x-model="q" @input="type()" @focus="open = (results.length>0)" @keydown.down.prevent="move(1)" @keydown.up.prevent="move(-1)" @keydown.enter.prevent="enter()"
-                               type="text" placeholder="Cari menu..."
-                               class="w-full rounded-full border border-[#ECC9A8] bg-white/95 pl-9 pr-4 py-2 text-sm placeholder-[#8C5A3A]/60 focus:border-[#C58A53] focus:ring-2 focus:ring-[#ECC9A8]" />
-                        <svg class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#8C5A3A]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z" />
-                        </svg>
-                        <div x-cloak x-show="open" class="absolute z-50 mt-2 w-full max-h-72 overflow-auto rounded-2xl border border-[#ECC9A8] bg-white shadow-lg">
-                            <template x-if="loading">
-                                <div class="p-3 text-sm text-[#8C5A3A]">Mencari...</div>
-                            </template>
-                            <template x-for="(item, idx) in results" :key="item.id">
-                                <a :href="item.url" class="flex items-center gap-3 p-2 hover:bg-[#F5E6D3]/40" :class="{ 'bg-[#F5E6D3]/30' : idx === index }" @mouseenter="index = idx">
-                                    <div class="relative w-12 aspect-[4/3] overflow-hidden rounded-md bg-gray-100">
-                                        <img :src="item.image_url || '/images/palas-logo.png'" alt="" class="absolute inset-0 h-full w-full object-cover">
-                                    </div>
-                                    <div class="flex-1">
-                                        <div class="text-sm font-semibold text-[#2A1A13]" x-text="item.name"></div>
-                                        <div class="text-xs text-gray-500"><span x-text="item.category || '-' "></span> • <span x-text="format(item.price)"></span></div>
-                                    </div>
-                                </a>
-                            </template>
-                            <div x-show="!loading && results.length === 0 && q.length >= 2" class="p-3 text-sm text-gray-500">Tidak ada hasil</div>
-                        </div>
-                    </div>
-
-                    <a href="{{ route('cart.index') }}" data-cart-indicator class="rounded-full border border-[#ECC9A8] p-2 text-[#4C2B1C] hover:bg-[#F5E6D3]">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2m0 0h13.2l1.2 6.5a1 1 0 01-1 1.17H7.53m-2.13-7.67L7.53 17h9.94m0 0a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 103 0m-9.94 0a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0" />
-                        </svg>
-                    </a>
-                    @auth
-                        <div class="ms-auto flex items-center gap-3">
-                            <span class="rounded-full bg-[#F5E6D3] px-3 py-1 text-sm font-semibold text-[#4C2B1C]">
-                                {{ auth()->user()->name }}
-                            </span>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="rounded-full bg-[#8C5A3A] px-4 py-2 text-sm font-semibold text-white hover:bg-[#4C2B1C]">
-                                    {{ __('Keluar') }}
-                                </button>
-                            </form>
-                        </div>
-                    @else
-                        <div class="ms-auto flex items-center gap-2">
-                            <a href="{{ route('register') }}" class="inline-flex items-center gap-2 rounded-full border border-[#8C5A3A] px-5 py-2 text-sm font-semibold text-[#8C5A3A] hover:bg-[#8C5A3A] hover:text-white transition">
-                                {{ __('Register') }}
-                            </a>
-                            <a href="{{ route('login') }}" class="inline-flex items-center gap-2 rounded-full bg-[#8C5A3A] px-5 py-2 text-sm font-semibold text-white hover:bg-[#4C2B1C]">
-                                {{ __('Sign in') }}
-                            </a>
-                        </div>
-                    @endauth
-                </div>
-            </nav>
         </header>
 
         <main class="flex-1">
@@ -344,3 +305,5 @@
         </script>
     </body>
 </html>
+
+

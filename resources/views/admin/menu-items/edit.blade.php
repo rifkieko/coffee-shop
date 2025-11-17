@@ -73,11 +73,22 @@
                             <x-input-error :messages="$errors->get('description')" class="mt-2" />
                         </div>
 
+                        @php
+                            $initialImage = $menuItem->image_path
+                                ? asset('storage/'.$menuItem->image_path)
+                                : 'https://via.placeholder.com/400x400?text=Menu';
+                        @endphp
                         <div class="space-y-3">
                             <x-input-label for="image" :value="__('Foto Menu')" />
-                            @if ($menuItem->image_path)
-                                <img src="{{ asset('storage/'.$menuItem->image_path) }}" alt="{{ $menuItem->name }}" class="h-32 w-full rounded-lg object-contain bg-gray-100">
-                            @endif
+                            <div class="h-32 overflow-hidden rounded-lg border border-dashed border-gray-200 bg-gray-50">
+                                <img
+                                    id="image-preview"
+                                    data-original-src="{{ $initialImage }}"
+                                    src="{{ $initialImage }}"
+                                    alt="{{ $menuItem->name }}"
+                                    class="h-full w-full object-contain"
+                                >
+                            </div>
                             <input id="image" name="image" type="file" accept="image/*"
                                    class="mt-1 block w-full text-sm text-gray-600 dark:text-gray-300 file:mr-4 file:rounded-md file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-500/20 dark:file:text-indigo-200" />
                             <p class="text-xs text-gray-500 dark:text-gray-400">{{ __('Unggah gambar baru (opsional). Maks 4MB.') }}</p>
@@ -109,4 +120,29 @@
             </div>
         </div>
     </div>
+    @push('scripts')
+        <script>
+            (function () {
+                const input = document.getElementById('image');
+                const preview = document.getElementById('image-preview');
+                if (!input || !preview) return;
+                const originalSrc = preview.dataset.originalSrc;
+
+                const updatePreview = (src) => {
+                    preview.src = src || originalSrc || preview.src;
+                };
+
+                input.addEventListener('change', () => {
+                    const file = input.files && input.files[0];
+                    if (!file) {
+                        updatePreview(originalSrc);
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.addEventListener('load', () => updatePreview(reader.result));
+                    reader.readAsDataURL(file);
+                });
+            })();
+        </script>
+    @endpush
 </x-app-layout>

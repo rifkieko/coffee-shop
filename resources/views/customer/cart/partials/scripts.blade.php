@@ -186,6 +186,7 @@
                 if (submitButton) {
                     submitButton.disabled = false;
                     submitButton.classList.remove('cart-button-busy');
+                    submitButton.blur();
                 }
             }
         });

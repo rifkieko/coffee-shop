@@ -63,12 +63,10 @@
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="inline-flex h-[2.5rem] items-center gap-2 rounded-full border border-[#dc2626] bg-[#dc2626] px-4 text-xs font-semibold uppercase tracking-[0.3em] text-white transition hover:border-[#a01717] hover:bg-[#b91c1c]">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M3 6h18" />
-                                    <path d="M8 6v12a2 2 0 002 2h4a2 2 0 002-2V6" />
-                                    <path d="M10 11v6" />
-                                    <path d="M14 11v6" />
-                                    <path d="M5 6l1-3h12l1 3" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M5 6h14" />
+                                    <path d="M9 6l-1 12h8l-1-12" />
+                                    <path d="M9 3h6" />
                                 </svg>
                                 {{ __('Hapus') }}
                             </button>

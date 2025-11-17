@@ -24,7 +24,7 @@
                         @include('customer.cart.partials.items', ['cart' => $cart])
                     </div>
                 </div>
-                <div class="rounded-[36px] border border-transparent bg-gradient-to-r from-[#fefefe] via-[#fef6ec] to-[#f1f3ff] p-5 shadow-[0_25px_60px_rgba(15,15,30,0.12)]">
+                <div class="rounded-[24px] border border-transparent bg-gradient-to-r from-[#fefefe] via-[#fef6ec] to-[#f1f3ff] p-5 shadow-[0_25px_60px_rgba(15,15,30,0.12)]">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-xs uppercase tracking-[0.4em] text-gray-500">{{ __('Total Pembayaran') }}</p>
