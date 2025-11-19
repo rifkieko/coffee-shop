@@ -18,8 +18,66 @@
             <x-auth-validation-errors class="mb-4" :errors="$errors" />
 
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm rounded-lg">
-                <div class="p-6">
-                    <div class="overflow-x-auto">
+                <div class="p-6 space-y-6">
+                    <div class="space-y-4 md:hidden">
+                        @forelse ($menuItems as $item)
+                            <article class="rounded-[18px] border border-gray-200 bg-white/90 p-3 shadow-sm dark:border-gray-700 dark:bg-gray-900/70">
+                                <div class="flex gap-3">
+                                    <div class="h-16 w-16 overflow-hidden rounded-md bg-gray-100 dark:bg-gray-700">
+                                        @if ($item->image_path)
+                                            <img src="{{ asset('storage/'.$item->image_path) }}" alt="{{ $item->name }}" class="h-full w-full object-cover">
+                                        @else
+                                            <div class="flex h-full w-full items-center justify-center text-xs font-semibold text-gray-500 dark:text-gray-300">
+                                                {{ strtoupper(mb_substr($item->name, 0, 2)) }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ $item->name }}</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">{{ $item->category?->name ?? '-' }}</p>
+                                        <p class="mt-1 text-sm font-semibold text-gray-900 dark:text-gray-100">Rp{{ number_format($item->price, 0, ',', '.') }}</p>
+                                        <p class="text-[11px] text-gray-500 dark:text-gray-400">{{ __('Stok') }}: {{ $item->stock }} • {{ $item->is_active ? __('Aktif') : __('Nonaktif') }}</p>
+                                    </div>
+                                </div>
+                                <div class="mt-4 grid gap-2">
+                                    <a href="{{ route('admin.menu-items.edit', $item) }}" class="inline-flex items-center justify-center rounded-full bg-[#FFF5EB] px-4 py-1 text-xs font-semibold uppercase tracking-[0.4em] text-[#8C5A3A] dark:text-[#d4a761]">
+                                        {{ __('Ubah') }}
+                                    </a>
+                                    <form action="{{ route('admin.menu-items.destroy', $item) }}" method="POST" onsubmit="return confirm('{{ __('Hapus menu ini?') }}')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="inline-flex w-full items-center justify-center rounded-full bg-[#FFEFEF] px-4 py-1 text-xs font-semibold uppercase tracking-[0.4em] text-[#C12C4D]">
+                                            {{ __('Hapus') }}
+                                        </button>
+                                    </form>
+                                </div>
+                                <form action="{{ route('admin.menu-items.update-stock', $item) }}" method="POST" class="mt-4 grid gap-2">
+                                    @csrf
+                                    @method('PATCH')
+                                    <div class="flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400 uppercase tracking-[0.3em]">
+                                        <label for="stock-{{ $item->id }}">{{ __('Stok') }}</label>
+                                        <input id="stock-{{ $item->id }}" type="number" name="stock" min="0" value="{{ $item->stock }}"
+                                               class="w-20 rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                                    </div>
+                                    <button type="submit" class="inline-flex items-center justify-center rounded-full bg-[#686222] px-4 py-2 text-sm font-semibold uppercase tracking-[0.3em] text-white">
+                                        <x-icons.check class="w-3.5 h-3.5" />
+                                        {{ __('Simpan') }}
+                                    </button>
+                                    <p class="text-[11px] text-gray-500 dark:text-gray-400">
+                                        {{ __('Stok: :current / Batas: :threshold', ['current' => $item->stock, 'threshold' => $item->low_stock_threshold]) }}
+                                        @if ($item->low_stock_notified_at)
+                                            • {{ __('Sudah diberi tahu') }}
+                                        @endif
+                                    </p>
+                                </form>
+                            </article>
+                        @empty
+                            <div class="text-center text-sm text-gray-500 dark:text-gray-400">
+                                {{ __('Belum ada menu.') }}
+                            </div>
+                        @endforelse
+                    </div>
+                    <div class="overflow-x-auto hidden md:block">
                         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-xs sm:text-sm">
                             <thead class="bg-gray-50 dark:bg-gray-700/50">
                                 <tr>

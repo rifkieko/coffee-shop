@@ -1,51 +1,94 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <h2 class="font-semibold text-2xl text-[#2A1A13] dark:text-gray-100 leading-tight">
-                {{ __('Dashboard Admin') }}
-            </h2>
-            <span class="inline-flex items-center gap-2 rounded-full bg-[#F5E6D3] px-4 py-1 text-xs font-semibold text-[#8C5A3A] ring-1 ring-[#ECC9A8]">
-                <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
-                {{ now()->translatedFormat('d M Y') }}
-            </span>
+            <div>
+                <h2 class="font-semibold text-2xl text-[#2A1A13] dark:text-gray-100 leading-tight">
+                    {{ __('Dashboard Admin') }}
+                </h2>
+                <span class="inline-flex items-center gap-2 rounded-full bg-[#F5E6D3] px-4 py-1 text-xs font-semibold text-[#8C5A3A] ring-1 ring-[#ECC9A8] mt-1">
+                    <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+                    {{ now()->translatedFormat('d M Y') }}
+                </span>
+            </div>
+            <div>
+                <x-dropdown align="right" width="64">
+                    <x-slot name="trigger">
+                        <button class="inline-flex items-center gap-2 rounded-full border border-[#ECC9A8] bg-[#F9F4EB] px-4 py-1.5 text-sm font-semibold text-[#4C2B1C] shadow-sm transition hover:bg-[#F5E6D3]">
+                            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-[#e3d0b4] font-semibold text-[#4C2B1C]">
+                                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                            </span>
+                            <span>{{ __('Administrator') }}</span>
+                            <svg class="h-4 w-4 text-[#4C2B1C]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 9l6 6 6-6" />
+                            </svg>
+                        </button>
+                    </x-slot>
+                    <x-slot name="content">
+                        <div class="px-4 py-3 space-y-3">
+                            <div>
+                                <p class="text-sm font-semibold uppercase tracking-[0.3em] text-[#8C5A3A]">{{ __('Administrator') }}</p>
+                                <p class="text-base font-semibold text-[#2A1A13]">{{ auth()->user()->name }}</p>
+                                <p class="text-xs uppercase tracking-[0.4em] text-gray-400">{{ strtoupper(auth()->user()->role->value ?? 'ADMIN') }}</p>
+                                <p class="text-xs text-gray-500">{{ auth()->user()->email }}</p>
+                            </div>
+                            <div class="space-y-2">
+                                <x-dropdown-link :href="route('dashboard')" class="rounded-full border border-[#1ec16b]/40 bg-[#ebfff6] px-3 py-2 text-sm font-semibold text-[#1ec16b]">
+                                    {{ __('Dashboard') }}
+                                </x-dropdown-link>
+                                <x-dropdown-link :href="route('home')" class="rounded-full border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700">
+                                    {{ __('Kembali ke Toko') }}
+                                </x-dropdown-link>
+                            </div>
+                            <x-dropdown-link :href="route('profile.edit')" class="text-sm text-gray-700">
+                                {{ __('Profil') }}
+                            </x-dropdown-link>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <x-dropdown-link :href="route('logout')" class="text-sm text-red-600" onclick="event.preventDefault(); this.closest('form').submit();">
+                                    {{ __('Keluar') }}
+                                </x-dropdown-link>
+                            </form>
+                        </div>
+                    </x-slot>
+                </x-dropdown>
+            </div>
         </div>
     </x-slot>
 
-    <div class="bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div class="rounded-3xl border border-gray-200 bg-white px-6 py-8 shadow">
-                <div class="flex flex-col gap-6 text-white sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <p class="text-xs uppercase tracking-widest text-gray-500">{{ __('Overview Operasional') }}</p>
-                        <h1 class="mt-3 text-3xl font-semibold text-[#2A1A13]">{{ __('Selamat datang kembali, Admin!') }}</h1>
-                        <p class="mt-2 text-sm text-gray-600">
+    <div class="bg-[#f7f8fc] dark:bg-[#0f1117]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+            <div class="rounded-3xl border border-gray-200 bg-gradient-to-br from-[#fffdf9] to-[#f1f2f7] px-6 py-8 shadow-lg shadow-amber-100 dark:border-gray-700 dark:from-gray-900/40 dark:to-gray-900/50">
+                <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="max-w-2xl space-y-3">
+                        <p class="text-xs uppercase tracking-[0.5em] text-[#ad9e88]">{{ __('Overview Operasional') }}</p>
+                        <h1 class="text-3xl font-bold text-[#1f1a17] dark:text-gray-100">{{ __('Selamat datang kembali, Admin!') }}</h1>
+                        <p class="text-sm text-gray-600 dark:text-gray-300">
                             {{ __('Pantau menu, pesanan, dan stok secara real-time. Pastikan pengalaman pelanggan tetap optimal.') }}
                         </p>
+                        <div class="flex flex-wrap gap-3">
+                            <span class="inline-flex items-center rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#7c6745] shadow-sm">Operational Pulse</span>
+                            <span class="inline-flex items-center rounded-full bg-white px-3 py-1 text-xs font-semibold text-[#7c6745] shadow-sm">{{ now()->translatedFormat('l, d M Y') }}</span>
+                        </div>
                     </div>
-                    <div class="rounded-xl ring-1 ring-gray-200 bg-white px-5 py-4 text-right shadow-inner">
-                        <p class="text-xs uppercase tracking-widest text-gray-500">{{ __('Total pendapatan hari ini') }}</p>
-                        <p class="mt-2 text-2xl font-semibold text-[#2A1A13]">
+                    <div class="rounded-2xl border border-[#edd8bf] bg-white/80 p-5 text-right shadow-inner dark:bg-gray-900/60 dark:border-[#2a2c37]">
+                        <p class="text-xs uppercase tracking-[0.4em] text-gray-500">{{ __('Total pendapatan hari ini') }}</p>
+                        <p class="mt-2 text-3xl font-semibold text-[#1a281a] dark:text-white">
                             Rp{{ number_format($latestOrders->whereBetween('created_at', [now()->startOfDay(), now()->endOfDay()])->sum('total_amount'), 0, ',', '.') }}
                         </p>
                         <p class="mt-1 text-xs text-gray-500">{{ __('Akumulasi pesanan yang selesai dibayar hari ini.') }}</p>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <div class="pb-12 bg-white dark:bg-gray-900">
-        <div class="max-w-7xl mx-auto pt-4 sm:px-6 lg:px-8 space-y-8">
-            <div class="flex items-center gap-2 overflow-x-auto whitespace-nowrap pb-2 px-4 sm:px-6 lg:px-8">
-                <a href="{{ route('admin.menu-items.index') }}" class="whitespace-nowrap inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 sm:py-2.5 text-sm font-semibold text-[#4C2B1C] border border-[#ECC9A8] shadow-sm hover:bg-[#F5E6D3]">
+            <div class="flex flex-wrap gap-3 overflow-x-auto rounded-[999px] bg-white/60 px-4 py-3 shadow-sm dark:bg-gray-900/40">
+                <a href="{{ route('admin.menu-items.index') }}" class="whitespace-nowrap inline-flex items-center gap-2 rounded-full border border-[#ECC9A8] bg-white px-4 py-2 sm:py-2.5 text-sm font-semibold text-[#4C2B1C] shadow-sm hover:bg-[#F5E6D3]">
                     <x-icons.pencil class="w-4 h-4" />
                     {{ __('Kelola Menu') }}
                 </a>
-                <a href="{{ route('admin.categories.index') }}" class="whitespace-nowrap inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 sm:py-2.5 text-sm font-semibold text-[#4C2B1C] border border-[#ECC9A8] shadow-sm hover:bg-[#F5E6D3]">
+                <a href="{{ route('admin.categories.index') }}" class="whitespace-nowrap inline-flex items-center gap-2 rounded-full border border-[#ECC9A8] bg-white px-4 py-2 sm:py-2.5 text-sm font-semibold text-[#4C2B1C] shadow-sm hover:bg-[#F5E6D3]">
                     <x-icons.plus class="w-4 h-4" />
                     {{ __('Kategori') }}
                 </a>
-                <a href="{{ route('admin.tables.index') }}" class="whitespace-nowrap inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 sm:py-2.5 text-sm font-semibold text-[#4C2B1C] border border-[#ECC9A8] shadow-sm hover:bg-[#F5E6D3]">
+                <a href="{{ route('admin.tables.index') }}" class="whitespace-nowrap inline-flex items-center gap-2 rounded-full border border-[#ECC9A8] bg-white px-4 py-2 sm:py-2.5 text-sm font-semibold text-[#4C2B1C] shadow-sm hover:bg-[#F5E6D3]">
                     <x-icons.check class="w-4 h-4" />
                     {{ __('Meja') }}
                 </a>

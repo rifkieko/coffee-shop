@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\CartItem;
 use App\Models\MenuItem;
 use App\Models\User;
 use App\Notifications\LowStockNotification;
@@ -213,6 +214,8 @@ class MenuItemController extends Controller
             Storage::disk('public')->delete($menuItem->image_path);
         }
 
+        CartItem::where('menu_item_id', $menuItem->id)->delete();
+
         $menuItem->delete();
 
         return redirect()->route('admin.menu-items.index')
@@ -273,4 +276,3 @@ class MenuItemController extends Controller
         }
     }
 }
-

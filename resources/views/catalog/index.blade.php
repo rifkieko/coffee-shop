@@ -20,7 +20,7 @@
                 </div>
             </div>
 
-            <div class="flex flex-wrap gap-3 text-sm font-medium text-[#6b5445]">
+            <div class="flex gap-3 overflow-x-auto text-sm font-medium text-[#6b5445]">
                 @foreach ($menuGroups as $group)
                     @php
                         $groupCategory = $group['category'];
@@ -57,7 +57,7 @@
                                     $isLowStock = $item->stock <= $item->low_stock_threshold;
                                     $category = strtolower($item->category?->name ?? '');
                                     $isDrink = in_array($category, ['coffee','non coffee','non-coffee','noncoffee','kopi','minuman']);
-                                @endphp
+                        @endphp
                                 <article class="ui-card">
                                     <a href="{{ route('catalog.show', $item) }}" class="relative block focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#c58a53]">
                                         <img src="{{ $item->image_url ?? 'https://via.placeholder.com/400x400?text=Menu' }}" alt="{{ $item->name }}">

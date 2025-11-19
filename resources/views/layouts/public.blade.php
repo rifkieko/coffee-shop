@@ -17,11 +17,12 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="antialiased font-sans bg-white dark:bg-gray-900 text-[#2A1A13] dark:text-gray-100 min-h-screen flex flex-col">
+                @unless(request()->routeIs(['cart.*', 'checkout.*']))
                 <header x-data="{ mobileOpen: false, q: @js(request('q')) }" class="sticky top-0 z-40 border-b border-black/20 bg-white/90 backdrop-blur">
-            @php
-                // Navigation links intentionally disabled per request.
-                $primaryLinks = [];
-            @endphp
+                    @php
+                        // Navigation links intentionally disabled per request.
+                        $primaryLinks = [];
+                    @endphp
 
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex h-16 sm:h-20 items-center justify-between gap-4 sm:gap-6">
@@ -75,6 +76,9 @@
                             </svg>
                         </a>
                         @auth
+                            @php
+                                $roleLabel = auth()->user()?->role === 'admin' ? __('Administrator') : __('Customer');
+                            @endphp
                             <x-dropdown align="right" width="48">
                                 <x-slot name="trigger">
                                     <button type="button" class="inline-flex items-center gap-2 rounded-full border border-[#C58A53]/40 bg-white px-4 py-2 text-sm font-semibold text-[#4C2B1C] shadow-sm transition hover:border-[#4C2B1C]/40 hover:bg-[#F5E6D3]">
@@ -89,17 +93,47 @@
                                         </svg>
                                     </button>
                                 </x-slot>
-                                <x-slot name="content">
-                                    <x-dropdown-link :href="route('profile.edit')">
-                                        {{ __('Profil') }}
-                                    </x-dropdown-link>
-                                    <form method="POST" action="{{ route('logout') }}">
-                                        @csrf
-                                        <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();">
-                                            {{ __('Keluar') }}
+                            <x-slot name="content">
+                                <div class="min-w-[16rem] rounded-[28px] bg-white dark:bg-slate-900/80 p-4 shadow-[0_25px_50px_rgba(15,23,42,0.15)] text-sm text-[#1b1b1b] dark:text-gray-100 space-y-4">
+                                    <div class="flex items-center gap-3 border-b border-gray-100 dark:border-slate-800 pb-4">
+                                        <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#f4e3d0] text-[#4C2B1C] font-semibold">
+                                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-base font-semibold text-gray-900 dark:text-white">{{ auth()->user()->name }}</p>
+                                            <p class="text-xs font-medium uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">{{ $roleLabel }}</p>
+                                            <p class="text-[11px] text-gray-500 dark:text-gray-400">{{ auth()->user()->email }}</p>
+                                        </div>
+                                    </div>
+
+                                    @if (auth()->user()->isAdmin())
+                                        <div class="space-y-1">
+                                            <x-dropdown-link :href="route('dashboard')"
+                                                             class="rounded-full border border-[#1ec16b]/50 bg-[#1ec16b]/10 px-3 py-2 text-sm font-semibold text-[#1ec16b] flex items-center justify-between">
+                                                <span>{{ __('Dashboard') }}</span>
+                                                <span class="text-xs font-mono text-[#1ec16b]">⌗</span>
+                                            </x-dropdown-link>
+                                            <x-dropdown-link :href="route('home')"
+                                                             class="rounded-full border border-gray-200 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                                {{ __('Kembali ke Toko') }}
+                                            </x-dropdown-link>
+                                        </div>
+                                    @endif
+
+                                    <div class="border-t border-gray-100 dark:border-slate-800 pt-4 space-y-1">
+                                        <x-dropdown-link :href="route('profile.edit')" class="text-sm text-gray-700 dark:text-gray-200">
+                                            {{ __('Profil') }}
                                         </x-dropdown-link>
-                                    </form>
-                                </x-slot>
+                                        <form method="POST" action="{{ route('logout') }}">
+                                            @csrf
+                                            <x-dropdown-link :href="route('logout')" onclick="event.preventDefault(); this.closest('form').submit();"
+                                                             class="text-sm text-red-600 dark:text-red-400">
+                                                {{ __('Keluar') }}
+                                            </x-dropdown-link>
+                                        </form>
+                                    </div>
+                                </div>
+                            </x-slot>
                             </x-dropdown>
                         @else
                             <div class="flex items-center gap-2">
@@ -136,17 +170,42 @@
                             </button>
                             <div x-cloak x-show="mobileOpen" x-transition.origin.top.right
                                  id="mobile-auth-overlay"
-                                 class="absolute right-0 top-full z-40 mt-2 w-48 min-w-[12rem] rounded-[18px] border border-black/20 bg-white/95 px-4 py-3 shadow-[0_16px_30px_rgba(15,15,30,0.1)] text-sm text-[#4C2B1C]">
+                                 class="absolute right-0 top-full z-40 mt-2 w-56 min-w-[14rem] rounded-lg border border-black/20 bg-white/95 px-4 py-3 shadow-[0_16px_30px_rgba(15,15,30,0.1)] text-sm text-[#4C2B1C]">
                                 @auth
+                                    @php
+                                        $initial = strtoupper(mb_substr(auth()->user()->name, 0, 1));
+                                        $roleLabel = auth()->user()->isAdmin() ? __('Admin') : __('Customer');
+                                    @endphp
                                     <div class="space-y-3">
-                                        <div class="text-sm font-semibold">{{ auth()->user()->name }}</div>
-                                        <form method="POST" action="{{ route('logout') }}">
-                                            @csrf
-                                            <button type="submit"
-                                                class="w-full rounded-full border border-[#8C5A3A] px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#8C5A3A] transition hover:bg-[#8C5A3A] hover:text-white">
-                                                {{ __('Keluar') }}
-                                            </button>
-                                        </form>
+                                        <div class="overflow-hidden rounded-lg border border-[#ECC9A8]/60 bg-white p-3 shadow-[0_20px_50px_rgba(46,29,23,0.1)]">
+                                            <div class="flex items-center gap-3">
+                                                <div class="flex h-11 w-11 items-center justify-center rounded-full bg-[#ECC9A8] text-[#4C2B1C] font-semibold">
+                                                    {{ $initial }}
+                                                </div>
+                                                <div>
+                                                    <div class="text-base font-semibold text-[#2A1A13]">{{ auth()->user()->name }}</div>
+                                                    <div class="text-[11px] uppercase tracking-[0.4em] text-[#C6956D] mt-1">
+                                                        {{ $roleLabel }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="mt-3 text-xs text-[#4C2B1C]/80">{{ auth()->user()->email }}</div>
+                                            <div class="mt-3 h-px bg-slate-200"></div>
+                                            <div class="mt-3 flex flex-col gap-2">
+                                                <a href="{{ route('profile.edit') }}"
+                                                   class="rounded-lg border border-[#ECC9A8] px-3 py-2 text-center text-xs font-semibold uppercase tracking-[0.3em] text-[#2A1A13] transition hover:bg-[#F5E6D3]"
+                                                   @click="mobileOpen = false">
+                                                    {{ __('Profil') }}
+                                                </a>
+                                                <form method="POST" action="{{ route('logout') }}">
+                                                    @csrf
+                                                    <button type="submit"
+                                                            class="w-full rounded-lg border border-[#ECC9A8] px-3 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#2A1A13] transition hover:bg-[#F5E6D3]">
+                                                        {{ __('Keluar') }}
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
                                     </div>
                                 @else
                                     <div class="space-y-2">
@@ -200,6 +259,7 @@
             </div>
 
         </header>
+                @endunless
 
         <main class="flex-1">
             @if (session('status'))
@@ -268,7 +328,7 @@
             }
         </script>
         @include('customer.cart.partials.scripts')
-        @if (! request()->routeIs(['cart.*', 'checkout.*']))
+        @if (! request()->routeIs(['cart.*', 'checkout.*', 'catalog.show']))
             <!-- Global mini cart bar -->
             <div id="mini-cart-bar" class="fixed inset-x-0 bottom-4 z-40 hidden px-4">
                 <div class="mx-auto w-full max-w-md sm:max-w-xl">
@@ -291,6 +351,67 @@
                 </div>
             </div>
         @endif
+        <script>
+            (function () {
+                const formatRupiah = (value) => {
+                    try {
+                        return 'Rp' + new Intl.NumberFormat('id-ID').format(value || 0);
+                    } catch (_) {
+                        return 'Rp' + (value || 0);
+                    }
+                };
+
+                const updateMiniCartBar = (subtotal) => {
+                    const totalEl = document.getElementById('mini-cart-total');
+                    const bar = document.getElementById('mini-cart-bar');
+                    const domin = Number(subtotal || 0);
+                    if (totalEl) {
+                        totalEl.textContent = formatRupiah(domin);
+                    }
+                    if (bar) {
+                        bar.classList.toggle('hidden', !(domin > 0));
+                    }
+                };
+
+                const summaryEndpoint = @json(route('cart.summary'));
+                const refreshFromStorage = () => {
+                    const stored = localStorage.getItem('palas_cart_subtotal');
+                    updateMiniCartBar(Number(stored ?? 0));
+                };
+
+                const refreshFromServer = async () => {
+                    try {
+                        const response = await fetch(summaryEndpoint, { headers: { 'Accept': 'application/json' } });
+                        if (!response.ok) {
+                            return;
+                        }
+                        const data = await response.json().catch(() => ({}));
+                        const subtotal = Number(data.subtotal ?? 0);
+                        localStorage.setItem('palas_cart_subtotal', subtotal.toString());
+                        updateMiniCartBar(subtotal);
+                    } catch (_) { /* ignore */ }
+                };
+
+                document.addEventListener('DOMContentLoaded', () => {
+                    if (window.localStorage) {
+                        refreshFromStorage();
+                        refreshFromServer();
+                    }
+                });
+
+                window.addEventListener('storage', (event) => {
+                    if (event.key === 'palas_cart_subtotal') {
+                        updateMiniCartBar(Number(event.newValue ?? 0));
+                    }
+                });
+
+                window.addEventListener('cart:changed', (event) => {
+                    const total = Number(event.detail?.subtotal ?? 0);
+                    localStorage.setItem('palas_cart_subtotal', total.toString());
+                    updateMiniCartBar(total);
+                });
+            })();
+        </script>
         @stack('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', () => {

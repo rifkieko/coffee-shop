@@ -4,7 +4,7 @@
 <section class="bg-[#eef0f5] py-6">
     <div class="mx-auto max-w-md px-4" x-data="detailForm()" x-init="init({ price: {{ (int) $item->price }} })">
         <article class="overflow-hidden rounded-[12px] bg-white shadow-[0_25px_50px_rgba(42,26,19,0.08)]">
-            <div class="relative aspect-[4/3] w-full overflow-hidden rounded-[12px] bg-gray-100" style="aspect-ratio: 4 / 3">
+            <div class="relative aspect-[1/1] w-full overflow-hidden rounded-[12px] bg-gray-100" style="aspect-ratio: 1 / 1">
                 <a href="{{ url()->previous() }}" class="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-[#2a1205] shadow transition hover:bg-white">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="6" y1="18" x2="18" y2="6" />
@@ -26,7 +26,7 @@
             <input type="hidden" name="quantity" :value="qty">
             <input type="hidden" name="redirect_to" value="{{ route('home') }}">
 
-                <div class="space-y-2">
+                <div class="space-y-2 max-w-xs">
                     <label for="notes" class="block text-sm font-semibold text-[#2a1205]">{{ __('Catatan untuk Barista') }}</label>
                     <textarea id="notes" name="notes" rows="3" class="w-full rounded-[16px] border border-[#dcd7d1] bg-[#fdfdfd] px-3 py-2 text-sm text-[#4c2b1c] focus:border-[#c58a53] focus:outline-none focus:ring-2 focus:ring-[#fdecd9]">{{ old('notes') }}</textarea>
                 </div>

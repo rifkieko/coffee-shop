@@ -80,7 +80,7 @@
                         @endphp
                         <div class="space-y-3">
                             <x-input-label for="image" :value="__('Foto Menu')" />
-                            <div class="h-32 overflow-hidden rounded-lg border border-dashed border-gray-200 bg-gray-50">
+                            <div class="relative h-32 overflow-hidden rounded-lg border border-dashed border-gray-200 bg-gray-50">
                                 <img
                                     id="image-preview"
                                     data-original-src="{{ $initialImage }}"
@@ -121,28 +121,6 @@
         </div>
     </div>
     @push('scripts')
-        <script>
-            (function () {
-                const input = document.getElementById('image');
-                const preview = document.getElementById('image-preview');
-                if (!input || !preview) return;
-                const originalSrc = preview.dataset.originalSrc;
-
-                const updatePreview = (src) => {
-                    preview.src = src || originalSrc || preview.src;
-                };
-
-                input.addEventListener('change', () => {
-                    const file = input.files && input.files[0];
-                    if (!file) {
-                        updatePreview(originalSrc);
-                        return;
-                    }
-                    const reader = new FileReader();
-                    reader.addEventListener('load', () => updatePreview(reader.result));
-                    reader.readAsDataURL(file);
-                });
-            })();
-        </script>
+        @include('admin.menu-items.partials.image-preview-script')
     @endpush
 </x-app-layout>

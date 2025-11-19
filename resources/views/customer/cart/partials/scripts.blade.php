@@ -2,17 +2,23 @@
 <script>
     (function () {
         // Debounce util for auto-submit
-        const debounce = (fn, wait = 400) => {
-            let t;
-            return (...args) => {
-                clearTimeout(t);
-                t = setTimeout(() => fn.apply(null, args), wait);
+            const debounce = (fn, wait = 400) => {
+                let t;
+                return (...args) => {
+                    clearTimeout(t);
+                    t = setTimeout(() => fn.apply(null, args), wait);
+                };
             };
-        };
-        const formatRupiah = (n) => {
-            try { return 'Rp' + new Intl.NumberFormat('id-ID').format(n || 0); }
-            catch (_) { return 'Rp' + (n || 0); }
-        };
+            const notifyCartUpdate = (subtotal) => {
+                try {
+                    localStorage.setItem('palas_cart_subtotal', subtotal.toString());
+                    window.dispatchEvent(new CustomEvent('cart:changed', { detail: { subtotal } }));
+                } catch (_) { /* ignore */ }
+            };
+            const formatRupiah = (n) => {
+                try { return 'Rp' + new Intl.NumberFormat('id-ID').format(n || 0); }
+                catch (_) { return 'Rp' + (n || 0); }
+            };
 
         const resolveCartTarget = () => {
             const candidates = document.querySelectorAll('[data-cart-indicator]');
@@ -159,6 +165,12 @@
                         container.innerHTML = data.html;
                     }
                 }
+                if (data.summary_html) {
+                    const summary = document.getElementById('cart-summary');
+                    if (summary) {
+                        summary.innerHTML = data.summary_html;
+                    }
+                }
                 // Update mobile sticky total if present
                 if (typeof data.subtotal !== 'undefined') {
                     const totalEl = document.getElementById('cart-mobile-total');
@@ -173,11 +185,16 @@
                     showCartToast(data.message, data.variant ?? 'success');
                 }
                 if (typeof data.subtotal !== 'undefined') {
+                    const subtotal = Number(data.subtotal ?? 0);
                     const bar = document.getElementById('mini-cart-bar');
                     const totalEl = document.getElementById('mini-cart-total');
-                    const subtotal = Number(data.subtotal ?? 0);
                     if (bar) bar.classList.toggle('hidden', !(subtotal > 0));
                     if (totalEl) totalEl.textContent = formatRupiah(subtotal);
+                    const summaryTotal = document.querySelector('[data-cart-total]');
+                    if (summaryTotal) {
+                        summaryTotal.textContent = formatRupiah(subtotal);
+                    }
+                    notifyCartUpdate(subtotal);
                 }
             } catch (error) {
                 console.error(error);

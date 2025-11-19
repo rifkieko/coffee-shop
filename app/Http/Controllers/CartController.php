@@ -55,6 +55,7 @@ class CartController extends Controller
                 'variant' => 'success',
                 'subtotal' => $cart->subtotal,
                 'redirect' => $redirectTo,
+                'summary_html' => view('customer.cart.partials.summary', ['cart' => $cart])->render(),
             ]);
         }
 
@@ -114,6 +115,7 @@ class CartController extends Controller
                 'message' => $message,
                 'variant' => $variant,
                 'html' => view('customer.cart.partials.items', ['cart' => $cart])->render(),
+                'summary_html' => view('customer.cart.partials.summary', ['cart' => $cart])->render(),
                 'subtotal' => $cart->subtotal,
             ]);
         }

@@ -12,6 +12,7 @@ class CatalogController extends Controller
 {
     public function index(Request $request): View
     {
+
         $search = $request->query('q');
 
         $menuItems = MenuItem::with('category')

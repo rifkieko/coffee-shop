@@ -1,13 +1,21 @@
 @extends('layouts.public')
 
 @section('content')
-    <section class="bg-[#f5f6fb] py-12">
+    <section class="bg-[#f5f6fb] py-12 min-h-screen">
         <div class="mx-auto max-w-4xl px-4 pb-24 sm:px-6 lg:px-8">
             <div class="flex flex-col gap-6">
-                <div class="rounded-[16px] border border-white/70 bg-white/90 px-5 py-4 shadow-[0_20px_35px_rgba(15,15,30,0.12)]">
-                    <div class="text-center">
-                        <p class="text-xs font-semibold uppercase tracking-[0.6em] text-[#b89a7a]">{{ __('Pala\'s Kopi') }}</p>
-                        <h1 class="mt-3 text-3xl font-bold text-gray-900">{{ __('Keranjang Pesanan') }}</h1>
+                <div class="rounded-[24px] border border-white/70 bg-white/90 shadow-[0_25px_60px_rgba(15,15,30,0.12)]">
+                    <div class="flex items-center gap-2 border-b border-white/70 px-4 py-3 text-sm font-semibold text-[#2A1A13] tracking-[0.3em] uppercase">
+                        <a href="{{ route('home') }}"
+                           class="inline-flex h-8 w-8 items-center justify-center rounded-[12px] border border-[#d4d4d4] bg-white text-[#2A1A13] transition hover:bg-[#f5f5f5]">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M15 6l-6 6 6 6" />
+                            </svg>
+                        </a>
+                        <span class="text-xs tracking-[0.4em]">KERANJANG</span>
+                    </div>
+                    <div class="px-4 py-3 text-center">
+                        <p class="text-sm font-semibold uppercase tracking-[0.6em] text-[#b89a7a]">{{ __('Pala\'s Kopi') }}</p>
                     </div>
                 </div>
                 <div class="mt-6">
@@ -28,7 +36,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-xs uppercase tracking-[0.4em] text-gray-500">{{ __('Total Pembayaran') }}</p>
-                            <p class="text-3xl font-semibold text-gray-900">Rp{{ number_format($cart->subtotal, 0, ',', '.') }}
+                            <p class="text-3xl font-semibold text-gray-900"><span data-cart-total>Rp{{ number_format($cart->subtotal, 0, ',', '.') }}</span>
                             </p>
                         </div>
                         <a href="{{ route('checkout.show') }}" class="ml-4 inline-flex items-center justify-center rounded-full bg-[#1ec16b] px-8 py-3 text-sm font-semibold text-white shadow-lg transition hover:bg-[#14a75c] whitespace-nowrap">

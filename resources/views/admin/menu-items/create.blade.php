@@ -65,8 +65,20 @@
                             </div>
                         </div>
 
-                        <div>
+                        @php
+                            $placeholderImage = 'https://via.placeholder.com/640x480?text=Preview';
+                        @endphp
+                        <div class="space-y-3">
                             <x-input-label for="image" :value="__('Foto Menu (opsional)')" />
+                            <div class="relative h-32 overflow-hidden rounded-lg border border-dashed border-gray-200 bg-gray-50">
+                                <img
+                                    id="image-preview"
+                                    data-original-src="{{ $placeholderImage }}"
+                                    src="{{ $placeholderImage }}"
+                                    alt="Preview"
+                                    class="h-full w-full object-contain"
+                                >
+                            </div>
                             <input id="image" name="image" type="file" accept="image/*"
                                    class="mt-1 block w-full text-sm text-gray-600 dark:text-gray-300 file:mr-4 file:rounded-md file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-indigo-500/20 dark:file:text-indigo-200" />
                             <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ __('Format jpg/png, maks 4MB.') }}</p>
@@ -105,4 +117,7 @@
             </div>
         </div>
     </div>
+    @push('scripts')
+        @include('admin.menu-items.partials.image-preview-script')
+    @endpush
 </x-app-layout>
