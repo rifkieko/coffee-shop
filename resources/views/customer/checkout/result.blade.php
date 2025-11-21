@@ -1,96 +1,80 @@
-@extends('layouts.public')
-
-@section('content')
-    <section class="py-10 sm:py-12">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg rounded-2xl p-6 sm:p-8 space-y-6">
-                <div class="text-center space-y-3">
-                    <h1 class="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-gray-100">
-                        {{ __('Status Pembayaran Pesanan') }}
-                    </h1>
-                    <p class="text-sm text-gray-600 dark:text-gray-300">
-                        {{ __('Nomor Pesanan:') }} <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $order->order_number }}</span>
-                    </p>
-                </div>
-
-                @php
-                    $alertClasses = [
-                        'success' => 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-200',
-                        'warning' => 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200',
-                        'danger' => 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-200',
-                    ];
-                    $paymentStatusLabel = $order->payment_status
-                        ? $order->payment_status->label()
-                        : __('Tidak diketahui');
-                @endphp
-
-                <div class="rounded-xl border px-4 py-3 sm:px-5 sm:py-4 text-sm {{ $alertClasses[$alert['tone']] ?? $alertClasses['warning'] }}">
-                    <p class="text-base font-semibold">{{ $alert['title'] }}</p>
-                    <p class="mt-1">{{ $alert['message'] }}</p>
-                    @if ($statusMessage)
-                        <p class="mt-2 text-xs opacity-80">{{ $statusMessage }}</p>
-                    @endif
-                </div>
-
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/60 p-4 sm:p-5 space-y-2">
-                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Status Pembayaran') }}</p>
-                        <p class="text-base font-semibold text-gray-900 dark:text-gray-100">
-                            {{ $paymentStatusLabel }}
-                        </p>
-                        @if ($transactionStatus)
-                            <p class="text-xs text-gray-500 dark:text-gray-400">
-                                {{ __('Status Transaksi Midtrans: :status', ['status' => ucfirst($transactionStatus)]) }}
-                            </p>
-                        @endif
-                    </div>
-                    <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/60 p-4 sm:p-5 space-y-2">
-                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ __('Total Pembayaran') }}</p>
-                        <p class="text-base font-semibold text-gray-900 dark:text-gray-100">
-                            Rp{{ number_format($order->total_amount, 0, ',', '.') }}
-                        </p>
-                        @if ($order->paid_at)
-                            <p class="text-xs text-gray-500 dark:text-gray-400">
-                                {{ __('Dibayar pada: :date', ['date' => $order->paid_at->translatedFormat('d F Y H:i')]) }}
-                            </p>
-                        @endif
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap items-center justify-center gap-3">
-                    <a href="{{ route('home') }}"
-                       class="inline-flex items-center gap-2 rounded-full border border-gray-200 px-5 py-2 text-sm font-medium text-gray-700 transition hover:border-indigo-300 hover:text-indigo-600 dark:border-gray-700 dark:text-gray-200 dark:hover:border-indigo-500 dark:hover:text-indigo-300">
-                        {{ __('Kembali ke Beranda') }}
-                    </a>
-                    @auth
-                        @if (auth()->user()->isCustomer())
-                            <a href="{{ route('customer.orders.show', $order) }}"
-                               class="inline-flex items-center gap-2 rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition">
-                                {{ __('Lihat Detail Pesanan') }}
-                            </a>
-                        @endif
-                    @endauth
-                </div>
-            </div>
-
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg rounded-2xl p-6 sm:p-7 space-y-4">
-                <h2 class="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">{{ __('Rincian Pesanan') }}</h2>
-                <div class="space-y-3 divide-y divide-gray-100 dark:divide-gray-700/60">
-                    @foreach ($order->items as $item)
-                        <div class="pt-0 first:pt-0 sm:pt-3 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                            <div class="space-y-1">
-                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $item->menuItem?->name ?? '-' }}</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400">
-                                    {{ $item->quantity }} x Rp{{ number_format($item->unit_price, 0, ',', '.') }}
-                                </p>
-                            </div>
-                            <p class="text-sm font-semibold text-gray-900 dark:text-gray-100 sm:text-right">
-                                Rp{{ number_format($item->subtotal, 0, ',', '.') }}
-                            </p>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
+﻿<x-app-layout>
+    <x-slot name="header">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ __('Status Pembayaran Pesanan') }}</h2>
+            <div class="text-xs text-gray-500 uppercase tracking-[0.3em]">{{ __('Nomor Pesanan') }} {{ $order->order_number }}</div>
         </div>
-    </section>
-@endsection
+    </x-slot>
+
+    <div class="min-h-screen bg-[#f5f6fb] py-10 px-4 sm:px-6 lg:px-8">
+        <div class="mx-auto flex w-full max-w-5xl flex-col gap-6">
+            <div class="rounded-[32px] border border-white/70 bg-white p-6 shadow-[0_35px_100px_rgba(17,17,19,0.08)]">
+                <div class="space-y-5">
+                    <div class="rounded-[24px] border border-[#F3ECCC] bg-[#FFF8E0] p-5 text-sm font-semibold text-[#845F23]">
+                        <p>{{ $alert['title'] }}</p>
+                        <p class="text-xs font-normal text-gray-600">{{ $alert['message'] }}</p>
+                    </div>
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div class="rounded-[20px] border border-gray-100 bg-white p-4 shadow-sm">
+                            <p class="text-xs uppercase tracking-[0.3em] text-gray-400">{{ __('Status Pembayaran') }}</p>
+                            <p class="text-lg font-semibold text-gray-900">{{ $transactionStatus ? ucfirst($transactionStatus) : $order->payment_status->label() }}</p>
+                            <p class="text-xs text-gray-500">{{ __('Status Transaksi Midtrans') }}</p>
+                        </div>
+                        <div class="rounded-[20px] border border-gray-100 bg-white p-4 shadow-sm">
+                            <p class="text-xs uppercase tracking-[0.3em] text-gray-400">{{ __('Total Pembayaran') }}</p>
+                            <p class="text-xl font-bold text-gray-900">Rp{{ number_format($order->total_amount, 0, ',', '.') }}</p>
+                            <p class="text-xs text-gray-500">{{ __('Dibayar pada') }} {{ $order->paid_at?->timezone('Asia/Jakarta')->format('d M Y H:i') ?? '-' }}</p>
+                        </div>
+                    </div>
+                    <div class="grid gap-4 rounded-[20px] border border-gray-100 bg-white p-4 shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs uppercase tracking-[0.3em] text-gray-400">{{ __('Status Pesanan') }}</span>
+                            <span class="text-xs text-gray-500">{{ __('Diperbarui pada WIB') }}</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-3 text-sm font-semibold text-gray-900">
+                            <span>{{ $order->status->label() }}</span>
+                            <span>{{ $order->payment_status->label() }}</span>
+                            <span class="text-xs text-gray-500">{{ $order->created_at->timezone('Asia/Jakarta')->format('d M Y H:i') }}</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-center">
+                        <a href="{{ route('home') }}" class="inline-flex items-center justify-center gap-2 rounded-full border border-[#1ec16b] px-4 py-2 text-sm font-semibold uppercase tracking-[0.3em] text-[#1ec16b] transition hover:bg-[#f6fff6]">
+                            {{ __('Kembali ke Beranda') }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rounded-[32px] border border-white/70 bg-white p-6 shadow-[0_35px_80px_rgba(17,17,19,0.06)]">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">{{ __('Rincian Pesanan') }}</h3>
+                    <span class="text-xs text-gray-500">{{ __('Meja') }} {{ $order->table_number ?? $order->table?->name ?? '-' }}</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200 text-sm">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Menu') }}</th>
+                                <th class="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Jumlah') }}</th>
+                                <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Harga Satuan') }}</th>
+                                <th class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Subtotal') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @foreach ($order->items as $item)
+                                <tr>
+                                    <td class="px-4 py-3 font-medium text-gray-900">{{ $item->menuItem?->name ?? '-' }}</td>
+                                    <td class="px-4 py-3 text-center text-gray-600">{{ $item->quantity }}</td>
+                                    <td class="px-4 py-3 text-right text-gray-600">Rp{{ number_format($item->unit_price, 0, ',', '.') }}</td>
+                                    <td class="px-4 py-3 text-right font-semibold text-gray-900">Rp{{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="payment-log" class="text-xs text-gray-400"></div>
+        </div>
+    </div>
+</x-app-layout>

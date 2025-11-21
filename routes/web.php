@@ -55,6 +55,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->get('/admin', function ()
 Route::middleware(['auth', 'verified', 'profile.completed', 'role:customer'])->group(function () {
     Route::get('/tables/{table:slug}/order', [CustomerOrderController::class, 'create'])->name('customer.orders.create');
     Route::post('/tables/{table:slug}/order', [CustomerOrderController::class, 'store'])->name('customer.orders.store');
+    Route::get('/orders/history', [CustomerOrderController::class, 'history'])->name('customer.orders.history');
     Route::get('/orders/{order}', [CustomerOrderController::class, 'show'])->name('customer.orders.show');
     Route::get('/orders/{order}/payment', [CustomerOrderController::class, 'payment'])->name('customer.orders.payment');
 });

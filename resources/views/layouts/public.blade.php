@@ -70,11 +70,11 @@
                             </div>
                         </div>
 
-                        <a href="{{ route('cart.index') }}" data-cart-indicator class="rounded-full p-2 transition hover:bg-[#F5E6D3] hover:text-[#4C2B1C]" title="{{ __('Cart') }}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2m0 0h13.2l1.2 6.5a1 1 0 01-1 1.17H7.53m-2.13-7.67L7.53 17h9.94m0 0a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 103 0m-9.94 0a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0" />
-                            </svg>
-                        </a>
+                    <a href="{{ route('cart.index') }}" data-cart-indicator class="rounded-full p-2 transition hover:bg-[#F5E6D3] hover:text-[#4C2B1C]" title="{{ __('Cart') }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2m0 0h13.2l1.2 6.5a1 1 0 01-1 1.17H7.53m-2.13-7.67L7.53 17h9.94m0 0a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 103 0m-9.94 0a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0" />
+                        </svg>
+                    </a>
                         @auth
                             @php
                                 $roleLabel = auth()->user()?->role === 'admin' ? __('Administrator') : __('Customer');

@@ -175,13 +175,13 @@
                                 @forelse ($latestOrders as $order)
                                     <tr class="transition hover:bg-gray-50 dark:hover:bg-gray-900/50">
                                         <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
-                                            {{ $order->code }}
+                                            {{ $order->order_number }}
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            {{ $order->user?->name ?? __('Tamu') }}
+                                        {{ $order->customer_name ?? $order->user?->name ?? __('Tamu') }}
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                                            {{ $order->table?->name ?? __('Take Away') }}
+                                            {{ $order->table_number ?? $order->table?->name ?? __('Take Away') }}
                                         </td>
                                         <td class="px-4 py-3 whitespace-nowrap">
                                             <span @class([
