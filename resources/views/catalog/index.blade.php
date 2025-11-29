@@ -20,17 +20,19 @@
                 </div>
             </div>
 
-            <div class="flex gap-3 overflow-x-auto text-sm font-medium text-[#6b5445]">
-                @foreach ($menuGroups as $group)
-                    @php
-                        $groupCategory = $group['category'];
-                        $categoryName = $groupCategory?->name ?? 'Tanpa Kategori';
-                        $anchor = \Illuminate\Support\Str::slug($categoryName) ?: 'uncategorized';
-                    @endphp
-                    <a href="#category-{{ $anchor }}" class="ui-chip">
-                        {{ $categoryName }}
-                    </a>
-                @endforeach
+            <div class="overflow-x-auto -mx-2 px-2 pb-1">
+                <div class="inline-flex min-w-max gap-3 whitespace-nowrap text-sm font-medium text-[#6b5445]">
+                    @foreach ($menuGroups as $group)
+                        @php
+                            $groupCategory = $group['category'];
+                            $categoryName = $groupCategory?->name ?? 'Tanpa Kategori';
+                            $anchor = \Illuminate\Support\Str::slug($categoryName) ?: 'uncategorized';
+                        @endphp
+                        <a href="#category-{{ $anchor }}" class="ui-chip shrink-0">
+                            {{ $categoryName }}
+                        </a>
+                    @endforeach
+                </div>
             </div>
 
             <div class="space-y-12">
@@ -54,7 +56,7 @@
                         <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                             @forelse ($items as $item)
                                 @php
-                                    $isLowStock = $item->stock <= $item->low_stock_threshold;
+                                    $isLowStock = $item->stock < 10;
                                     $category = strtolower($item->category?->name ?? '');
                                     $isDrink = in_array($category, ['coffee','non coffee','non-coffee','noncoffee','kopi','minuman']);
                         @endphp
@@ -62,7 +64,7 @@
                                     <a href="{{ route('catalog.show', $item) }}" class="relative block focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#c58a53]">
                                         <img src="{{ $item->image_url ?? 'https://via.placeholder.com/400x400?text=Menu' }}" alt="{{ $item->name }}">
                                         @if ($isLowStock)
-                                            <span class="absolute top-4 left-4 rounded-full bg-[#f3b26d]/90 px-3 py-0.5 text-xs font-semibold text-white">Terbatas</span>
+                                            <span class="absolute top-4 left-4 rounded-full border border-red-500 bg-red-100 px-3 py-0.5 text-xs font-semibold text-red-800 shadow-sm">Terbatas</span>
                                         @endif
                                     </a>
                                     <div class="ui-card-body">

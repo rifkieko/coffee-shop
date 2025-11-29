@@ -77,7 +77,7 @@
                     </a>
                         @auth
                             @php
-                                $roleLabel = auth()->user()?->role === 'admin' ? __('Administrator') : __('Customer');
+                                $roleLabel = auth()->user()?->isAdmin() ? __('Administrator') : __('Customer');
                             @endphp
                             <x-dropdown align="right" width="48">
                                 <x-slot name="trigger">
@@ -192,6 +192,13 @@
                                             <div class="mt-3 text-xs text-[#4C2B1C]/80">{{ auth()->user()->email }}</div>
                                             <div class="mt-3 h-px bg-slate-200"></div>
                                             <div class="mt-3 flex flex-col gap-2">
+                                                @if (auth()->user()->isAdmin())
+                                                    <a href="{{ route('dashboard') }}"
+                                                       class="rounded-lg border border-[#1ec16b]/50 bg-[#1ec16b]/10 px-3 py-2 text-center text-xs font-semibold uppercase tracking-[0.3em] text-[#1ec16b] transition hover:bg-[#1ec16b]/20"
+                                                       @click="mobileOpen = false">
+                                                        {{ __('Dashboard') }}
+                                                    </a>
+                                                @endif
                                                 <a href="{{ route('profile.edit') }}"
                                                    class="rounded-lg border border-[#ECC9A8] px-3 py-2 text-center text-xs font-semibold uppercase tracking-[0.3em] text-[#2A1A13] transition hover:bg-[#F5E6D3]"
                                                    @click="mobileOpen = false">

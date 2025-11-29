@@ -62,7 +62,7 @@ class MenuItemController extends Controller
             'stock' => $validated['stock'],
             'low_stock_threshold' => $validated['low_stock_threshold'] ?? 5,
             'image_path' => $imagePath,
-            'is_active' => $validated['is_active'] ?? true,
+            'is_active' => $request->boolean('is_active', true),
         ]);
 
         $this->syncLowStockNotification($menuItem->fresh());
@@ -112,7 +112,7 @@ class MenuItemController extends Controller
             'stock' => $validated['stock'],
             'low_stock_threshold' => $validated['low_stock_threshold'] ?? $menuItem->low_stock_threshold,
             'image_path' => $imagePath,
-            'is_active' => $validated['is_active'] ?? true,
+            'is_active' => $request->boolean('is_active'),
         ]);
 
         $this->syncLowStockNotification($menuItem->fresh());

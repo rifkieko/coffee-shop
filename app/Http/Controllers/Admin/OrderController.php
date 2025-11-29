@@ -17,7 +17,7 @@ class OrderController extends Controller
         $status = $request->query('status');
         $paymentStatus = $request->query('payment_status');
 
-        $orders = Order::with(['user', 'table'])
+        $orders = Order::with(['user'])
             ->when($status, fn ($query) => $query->where('status', $status))
             ->when($paymentStatus, fn ($query) => $query->where('payment_status', $paymentStatus))
             ->latest()
@@ -33,7 +33,7 @@ class OrderController extends Controller
 
     public function show(Order $order): View
     {
-        $order->load(['items.menuItem', 'user', 'table']);
+        $order->load(['items.menuItem', 'user']);
 
         return view('admin.orders.show', compact('order'));
     }
@@ -77,4 +77,3 @@ class OrderController extends Controller
             ->with('status', 'Status pembayaran berhasil diperbarui.');
     }
 }
-

@@ -9,7 +9,6 @@ use App\Exceptions\PaymentException;
 use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\ShopTable;
 use App\Models\User;
 use App\Notifications\LowStockNotification;
 use Illuminate\Http\Request;
@@ -66,7 +65,6 @@ class OrderPlacementService
                 'customer_name' => $customerData['customer_name'] ?? $user?->name,
                 'customer_email' => $customerData['customer_email'] ?? $user?->email,
                 'customer_phone' => $customerData['customer_phone'] ?? $user?->phone,
-                'shop_table_id' => $cart->shop_table_id,
                 'status' => \App\Enums\OrderStatus::Pending,
                 'payment_status' => \App\Enums\PaymentStatus::Unpaid,
                 'notes' => $notes,
@@ -121,10 +119,10 @@ class OrderPlacementService
     public function place(
         Request $request,
         array $quantities,
-        ?ShopTable $table,
         ?string $notes,
         ?User $user,
-        array $customerData = []
+        array $customerData = [],
+        ?int $tableNumber = null,
     ): Order {
         $items = collect($quantities)
             ->filter(fn ($quantity) => (int) $quantity > 0)
@@ -138,10 +136,10 @@ class OrderPlacementService
 
         [$order, $menuItems, $lowStockItems] = $this->createOrderWithinTransaction(
             $items,
-            $table,
             $notes,
             $user,
-            $customerData
+            $customerData,
+            $tableNumber
         );
 
         $this->notifyLowStock($lowStockItems);
@@ -156,12 +154,12 @@ class OrderPlacementService
      */
     protected function createOrderWithinTransaction(
         Collection $items,
-        ?ShopTable $table,
         ?string $notes,
         ?User $user,
-        array $customerData
+        array $customerData,
+        ?int $tableNumber = null
     ): array {
-        return DB::transaction(function () use ($items, $table, $notes, $user, $customerData) {
+        return DB::transaction(function () use ($items, $notes, $user, $customerData, $tableNumber) {
             /** @var Collection<int, MenuItem> $menuItems */
             $menuItems = MenuItem::whereIn('id', $items->keys())
                 ->lockForUpdate()
@@ -193,7 +191,7 @@ class OrderPlacementService
                 'customer_name' => $customerData['customer_name'] ?? $user?->name,
                 'customer_email' => $customerData['customer_email'] ?? $user?->email,
                 'customer_phone' => $customerData['customer_phone'] ?? $user?->phone,
-                'shop_table_id' => $table?->id,
+                'table_number' => $tableNumber,
                 'status' => OrderStatus::Pending,
                 'payment_status' => PaymentStatus::Unpaid,
                 'notes' => $notes,

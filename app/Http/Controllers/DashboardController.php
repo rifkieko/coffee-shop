@@ -7,7 +7,6 @@ use App\Enums\UserRole;
 use App\Models\Category;
 use App\Models\MenuItem;
 use App\Models\Order;
-use App\Models\ShopTable;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -20,9 +19,8 @@ class DashboardController extends Controller
             return view('admin.dashboard', [
                 'menuCount' => MenuItem::count(),
                 'categoryCount' => Category::count(),
-                'activeTableCount' => ShopTable::where('is_active', true)->count(),
                 'pendingOrdersCount' => Order::where('status', OrderStatus::Pending)->count(),
-                'latestOrders' => Order::with(['user', 'table'])
+                'latestOrders' => Order::with(['user'])
                     ->latest()
                     ->limit(5)
                     ->get(),

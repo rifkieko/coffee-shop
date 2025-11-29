@@ -20,7 +20,6 @@ class Order extends Model
         'customer_name',
         'customer_email',
         'customer_phone',
-        'shop_table_id',
         'table_number',
         'status',
         'payment_status',
@@ -56,11 +55,6 @@ class Order extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function table(): BelongsTo
-    {
-        return $this->belongsTo(ShopTable::class, 'shop_table_id');
     }
 
     public function items(): HasMany

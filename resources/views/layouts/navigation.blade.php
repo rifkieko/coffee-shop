@@ -25,11 +25,8 @@
                 </div>
             </div>
 
-            <!-- Back to site + Settings Dropdown -->
+            <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6 gap-3">
-                <a href="{{ route('home') }}" class="inline-flex items-center gap-2 rounded-full border border-[#ECC9A8] px-4 py-1.5 text-sm font-medium text-[#4C2B1C] hover:bg-[#F5E6D3]">
-                    {{ __('Kembali ke Toko') }}
-                </a>
                 @auth
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
@@ -47,7 +44,7 @@
                         <x-slot name="content">
                             @php
                                 $initial = strtoupper(mb_substr(auth()->user()->name, 0, 1));
-                                $roleLabel = auth()->user()->isAdmin() ? __('Admin') : __('Customer');
+                                $roleLabel = auth()->user()->isAdmin() ? 'ADMIN' : 'CUSTOMER';
                             @endphp
 
                             <div class="rounded-[8px] border border-[#ECC9A8]/60 bg-white p-5 text-[#2A1A13] shadow-[0_30px_60px_rgba(47,33,31,0.15)] dark:bg-slate-900">
@@ -65,19 +62,27 @@
                                 <div class="mt-4 h-px bg-slate-100"></div>
 
                                 <div class="mt-3 space-y-2">
-                                    <x-dropdown-link :href="route('profile.edit')"
-                                        class="rounded-[8px] border border-[#ECC9A8] px-4 py-2 text-sm font-semibold tracking-[0.2em] text-[#2A1A13] transition hover:bg-[#F5E6D3]">
-                                        {{ __('Profil') }}
+                                    <x-dropdown-link :href="route('dashboard')"
+                                        class="rounded-[12px] border border-[#1ec16b]/40 bg-[#ebfff6] px-4 py-2 text-sm font-semibold text-[#1ec16b] transition hover:bg-[#d9f9e9]">
+                                        {{ __('Dashboard') }}
                                     </x-dropdown-link>
+
+                                    <x-dropdown-link :href="route('home')"
+                                        class="rounded-[12px] border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100">
+                                        {{ __('Kembali ke Toko') }}
+                                    </x-dropdown-link>
+
+                                    <a href="{{ route('profile.edit') }}"
+                                       class="block w-full rounded-[12px] border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-100 text-center">
+                                        {{ __('Profil') }}
+                                    </a>
 
                                     <form method="POST" action="{{ route('logout') }}">
                                         @csrf
-                                        <x-dropdown-link :href="route('logout')"
-                                            class="rounded-[8px] border border-[#ECC9A8] px-4 py-2 text-sm font-semibold tracking-[0.2em] text-[#2A1A13] transition hover:bg-[#F5E6D3]"
-                                            onclick="event.preventDefault();
-                                                        this.closest('form').submit();">
+                                        <button type="submit"
+                                            class="w-full rounded-[12px] border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-800 transition hover:bg-gray-100 text-center">
                                             {{ __('Keluar') }}
-                                        </x-dropdown-link>
+                                        </button>
                                     </form>
                                 </div>
                             </div>
@@ -126,7 +131,7 @@
             @auth
                 @php
                     $initial = strtoupper(mb_substr(auth()->user()->name, 0, 1));
-                    $roleLabel = auth()->user()->isAdmin() ? __('Admin') : __('Customer');
+                    $roleLabel = auth()->user()->isAdmin() ? 'ADMIN' : 'CUSTOMER';
                 @endphp
 
                 <div class="px-4">
@@ -148,18 +153,24 @@
                         <div class="mt-3 h-px bg-slate-200 dark:bg-slate-700"></div>
 
                         <div class="mt-3 space-y-1">
-                            <x-responsive-nav-link :href="route('profile.edit')" class="rounded-2xl px-3 py-2 text-sm font-semibold text-[#2A1A13] dark:text-slate-100 hover:bg-[#F5E6D3] dark:hover:bg-slate-800">
-                                {{ __('Profil') }}
+                            <x-responsive-nav-link :href="route('dashboard')" class="rounded-[12px] px-3 py-2 text-sm font-semibold text-[#2A1A13] dark:text-slate-100 hover:bg-[#F5E6D3] dark:hover:bg-slate-800">
+                                {{ __('Dashboard') }}
                             </x-responsive-nav-link>
+
+                            <x-responsive-nav-link :href="route('home')" class="rounded-[12px] px-3 py-2 text-sm font-semibold text-[#2A1A13] dark:text-slate-100 hover:bg-[#F5E6D3] dark:hover:bg-slate-800">
+                                {{ __('Kembali ke Toko') }}
+                            </x-responsive-nav-link>
+
+                            <a href="{{ route('profile.edit') }}" class="block rounded-[12px] border border-gray-200 px-3 py-2.5 text-sm font-semibold text-[#2A1A13] dark:text-slate-100 hover:bg-[#F5E6D3] dark:hover:bg-slate-800">
+                                {{ __('Profil') }}
+                            </a>
 
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
 
-                                <x-responsive-nav-link :href="route('logout')" class="rounded-2xl px-3 py-2 text-sm font-semibold text-[#2A1A13] dark:text-slate-100 hover:bg-[#F5E6D3] dark:hover:bg-slate-800"
-                                        onclick="event.preventDefault();
-                                                    this.closest('form').submit();">
+                                <button type="submit" class="w-full rounded-[12px] border border-gray-200 px-3 py-2.5 text-sm font-semibold text-[#2A1A13] dark:text-slate-100 hover:bg-[#F5E6D3] dark:hover:bg-slate-800">
                                     {{ __('Keluar') }}
-                                </x-responsive-nav-link>
+                                </button>
                             </form>
                         </div>
                     </div>

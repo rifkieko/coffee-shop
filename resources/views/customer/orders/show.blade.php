@@ -28,7 +28,7 @@
                             <dl class="space-y-2 text-sm text-gray-600 dark:text-gray-300">
                                 <div class="flex items-center justify-between">
                                     <dt>{{ __('Meja') }}</dt>
-                                    <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $order->table?->name ?? '-' }}</dd>
+                                    <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $order->table_number ?? '-' }}</dd>
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <dt>{{ __('Waktu') }}</dt>

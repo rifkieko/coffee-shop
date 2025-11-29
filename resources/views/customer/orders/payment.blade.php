@@ -34,7 +34,7 @@
         <div class="rounded-[28px] border border-white/70 bg-white p-6 shadow-[0_15px_40px_rgba(17,17,19,0.05)]">
             <div class="flex items-center justify-between mb-4">
                 <h3 class="text-lg font-semibold text-gray-900">{{ __('Rincian Pesanan') }}</h3>
-                <span class="text-xs text-gray-500">{{ __('Untuk meja') }} {{ $order->table_number ?? $order->table?->name ?? '-' }}</span>
+                <span class="text-xs text-gray-500">{{ __('Untuk meja') }} {{ $order->table_number ?? '-' }}</span>
             </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200 text-sm">

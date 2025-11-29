@@ -4,7 +4,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\MenuItemController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
-use App\Http\Controllers\Admin\TableController;
+use App\Http\Controllers\Admin\SalesReportController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\Customer\OrderController as CustomerOrderController;
@@ -46,15 +46,9 @@ Route::middleware(['auth', 'verified', 'role:admin'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
 });
 
-Route::middleware(['auth', 'verified', 'role:admin'])->get('/admin', function () {
-    return redirect()->route('dashboard');
-});
-
 // Route removed: public order history page is deprecated
 
 Route::middleware(['auth', 'verified', 'profile.completed', 'role:customer'])->group(function () {
-    Route::get('/tables/{table:slug}/order', [CustomerOrderController::class, 'create'])->name('customer.orders.create');
-    Route::post('/tables/{table:slug}/order', [CustomerOrderController::class, 'store'])->name('customer.orders.store');
     Route::get('/orders/history', [CustomerOrderController::class, 'history'])->name('customer.orders.history');
     Route::get('/orders/{order}', [CustomerOrderController::class, 'show'])->name('customer.orders.show');
     Route::get('/orders/{order}/payment', [CustomerOrderController::class, 'payment'])->name('customer.orders.payment');
@@ -67,14 +61,14 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::resource('menu-items', MenuItemController::class);
     Route::patch('menu-items/{menu_item}/stock', [MenuItemController::class, 'updateStock'])->name('menu-items.update-stock');
 
-    Route::resource('tables', TableController::class)->except(['show']);
-    Route::post('tables/{table}/regenerate-token', [TableController::class, 'regenerateToken'])->name('tables.regenerate-token');
-
     Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::get('orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::patch('orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.update-status');
     Route::patch('orders/{order}/payment', [AdminOrderController::class, 'updatePaymentStatus'])->name('orders.update-payment');
     Route::post('notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+
+    Route::get('reports/sales', [SalesReportController::class, 'index'])->name('reports.sales');
+    Route::get('reports/sales/export', [SalesReportController::class, 'export'])->name('reports.sales.export');
 });
 
 require __DIR__.'/auth.php';

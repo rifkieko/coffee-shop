@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Enums\UserRole;
 use App\Models\Category;
-use App\Models\ShopTable;
 use App\Models\User;
 use Illuminate\Support\Str;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -56,17 +55,5 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        foreach (['Meja A', 'Meja B', 'Meja C', 'Meja D'] as $name) {
-            ShopTable::firstOrCreate(
-                ['name' => $name],
-                [
-                    'code' => strtoupper(Str::random(6)),
-                    'slug' => Str::slug($name.'-'.Str::random(3)),
-                    'qr_token' => Str::uuid()->toString(),
-                    'capacity' => 4,
-                    'is_active' => true,
-                ]
-            );
-        }
     }
 }

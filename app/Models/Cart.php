@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Models\CartItem;
 use App\Models\MenuItem;
-use App\Models\ShopTable;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +13,6 @@ class Cart extends Model
     protected $fillable = [
         'user_id',
         'session_token',
-        'shop_table_id',
         'status',
         'subtotal',
     ];
@@ -29,11 +27,6 @@ class Cart extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function table()
-    {
-        return $this->belongsTo(ShopTable::class, 'shop_table_id');
     }
 
     public function items()

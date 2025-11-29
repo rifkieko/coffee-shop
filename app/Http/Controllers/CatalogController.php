@@ -16,8 +16,9 @@ class CatalogController extends Controller
         $search = $request->query('q');
 
         $menuItems = MenuItem::with('category')
+            ->active()
             ->when(!$search, function ($query) {
-                $query->active()->inStock();
+                $query->inStock();
             })
             ->when($search, function ($query) use ($search) {
                 $query->where(function ($inner) use ($search) {
@@ -29,7 +30,7 @@ class CatalogController extends Controller
                 });
             })
             ->when($search, function ($query) {
-                $query->orderByRaw('CASE WHEN is_active AND stock > 0 THEN 0 ELSE 1 END');
+                $query->orderByRaw('CASE WHEN stock > 0 THEN 0 ELSE 1 END');
             })
             ->orderByRaw('COALESCE(category_id, 0)')
             ->orderBy('name')
@@ -58,6 +59,8 @@ class CatalogController extends Controller
 
     public function show(MenuItem $menuItem): View
     {
+        abort_unless($menuItem->is_active, 404);
+
         return view('catalog.show', [
             'item' => $menuItem->load('category'),
         ]);

@@ -26,7 +26,7 @@
                             <div class="grid gap-3 text-sm text-gray-600 dark:text-gray-300 sm:grid-cols-2">
                                 <div>
                                     <dt class="text-xs uppercase tracking-[0.3em] text-gray-400">{{ __('Nomor Meja') }}</dt>
-                                    <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $order->table_number ?? $order->table?->name ?? '-' }}</dd>
+                                    <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $order->table_number ?? '-' }}</dd>
                                 </div>
                                 <div>
                                     <dt class="text-xs uppercase tracking-[0.3em] text-gray-400">{{ __('Pelanggan') }}</dt>

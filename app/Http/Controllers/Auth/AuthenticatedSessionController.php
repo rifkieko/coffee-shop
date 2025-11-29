@@ -29,11 +29,9 @@ class AuthenticatedSessionController extends Controller
         $request->session()->regenerate();
 
         $user = $request->user();
-        $redirectTo = match (true) {
-            $user->isAdmin() => route('admin.dashboard', absolute: false),
-            $user->isCustomer() => route('customer.orders.history', absolute: false),
-            default => route('home', absolute: false),
-        };
+        $redirectTo = $user->isAdmin()
+            ? route('admin.dashboard', absolute: false)
+            : route('home', absolute: false);
 
         return redirect()->intended($redirectTo);
     }

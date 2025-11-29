@@ -1,13 +1,9 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-start">
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
                 {{ __('Ubah Menu') }}
             </h2>
-            <a href="{{ route('admin.menu-items.index') }}" class="inline-flex items-center gap-1 text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
-                <x-icons.arrow-left class="w-4 h-4" />
-                {{ __('Kembali ke daftar') }}
-            </a>
         </div>
     </x-slot>
 

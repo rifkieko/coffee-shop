@@ -95,9 +95,4 @@
             </div>
         </div>
     </div>
-    <a href="{{ route('admin.categories.create') }}"
-       class="sm:hidden fixed bottom-20 right-4 inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-500">
-        <x-icons.plus class="w-5 h-5" />
-        <span class="sr-only">{{ __('Tambah Kategori') }}</span>
-    </a>
 </x-app-layout>

@@ -18,17 +18,17 @@ $width = match ($width) {
         {{ $trigger }}
     </div>
 
-    <div x-show="open"
+<div x-show="open"
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 scale-95"
             x-transition:enter-end="opacity-100 scale-100"
             x-transition:leave="transition ease-in duration-75"
             x-transition:leave-start="opacity-100 scale-100"
             x-transition:leave-end="opacity-0 scale-95"
-            class="absolute z-50 mt-2 {{ $width }} rounded-[8px] shadow-lg {{ $alignmentClasses }}"
+            class="absolute z-50 mt-2 {{ $width }} rounded-[12px] shadow-lg {{ $alignmentClasses }}"
             style="display: none;"
             @click="open = false">
-        <div class="rounded-[8px] ring-1 ring-black/5 {{ $contentClasses }}">
+        <div class="rounded-[12px] ring-1 ring-black/5 {{ $contentClasses }}">
             {{ $content }}
         </div>
     </div>
