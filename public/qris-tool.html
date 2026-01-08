@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Static → Dynamic QRIS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.min.js"></script>
+</head>
+<body class="bg-slate-100 text-slate-800">
+  <div class="min-h-screen flex items-center justify-center px-4 py-10">
+    <div class="w-full max-w-4xl bg-white shadow-xl rounded-2xl p-6 md:p-8 space-y-6">
+      <div class="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <h1 class="text-2xl font-bold">Static → Dynamic QRIS</h1>
+          <p class="text-sm text-slate-500">Inject Tag 54 (amount), recompute CRC-16/CCITT-FALSE, render QR.</p>
+        </div>
+        <div class="text-xs text-slate-500">CRC-16/CCITT-FALSE · Poly 0x1021 · Init 0xFFFF</div>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="space-y-4">
+          <label class="block">
+            <span class="text-sm font-semibold text-slate-700">Raw QRIS String (Static)</span>
+            <textarea id="qrisInput" class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-mono resize-y min-h-[140px]" placeholder="Paste static QRIS string here"></textarea>
+          </label>
+
+          <label class="block">
+            <span class="text-sm font-semibold text-slate-700">Amount (Rp)</span>
+            <input id="amountInput" type="number" min="1" class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" placeholder="contoh: 25000" />
+          </label>
+
+          <div class="flex flex-wrap gap-3">
+            <button id="generateBtn" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500">
+              Generate QR
+            </button>
+            <label class="inline-flex items-center gap-2 rounded-lg border border-dashed border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 cursor-pointer hover:bg-slate-50">
+              <input id="imageInput" type="file" accept="image/*" class="hidden" />
+              Upload QR Image (decode)
+            </label>
+          </div>
+
+          <div class="text-xs text-slate-500 space-y-1">
+            <p>- If you upload a static QR image, it will be decoded into the textarea.</p>
+            <p>- Tag 54 is injected; Tag 63 (CRC) is recalculated and appended.</p>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div class="rounded-xl border border-slate-200 p-4 bg-slate-50">
+            <div class="text-sm font-semibold text-slate-700 mb-2">Generated QR (Dynamic)</div>
+            <div id="qrContainer" class="w-full flex items-center justify-center min-h-[260px]">
+              <div id="qrCode"></div>
+            </div>
+          </div>
+
+          <label class="block">
+            <span class="text-sm font-semibold text-slate-700">Output QRIS String</span>
+            <textarea id="outputQris" readonly class="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm font-mono resize-y min-h-[140px]" placeholder="Hasil QRIS akan muncul di sini"></textarea>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <canvas id="hiddenCanvas" class="hidden"></canvas>
+
+  <script>
+    const qrisInput = document.getElementById('qrisInput');
+    const amountInput = document.getElementById('amountInput');
+    const outputQris = document.getElementById('outputQris');
+    const generateBtn = document.getElementById('generateBtn');
+    const imageInput = document.getElementById('imageInput');
+    const qrCodeEl = document.getElementById('qrCode');
+    let qr;
+
+    function parseTlv(str) {
+      const tags = [];
+      let i = 0;
+      while (i + 4 <= str.length) {
+        const tag = str.slice(i, i + 2);
+        const len = parseInt(str.slice(i + 2, i + 4), 10);
+        const start = i + 4;
+        const end = start + len;
+        if (isNaN(len) || end > str.length) break;
+        const value = str.slice(start, end);
+        tags.push({ tag, length: len, value });
+        i = end;
+      }
+      return tags;
+    }
+
+    function formatTlv(tag, value) {
+      const len = value.length.toString().padStart(2, '0');
+      return `${tag}${len}${value}`;
+    }
+
+    function stripTag(tags, target) {
+      return tags.filter(t => t.tag !== target);
+    }
+
+    function calculateCRC16CCITT(data) {
+      let crc = 0xFFFF;
+      for (let i = 0; i < data.length; i++) {
+        crc ^= data.charCodeAt(i) << 8;
+        for (let j = 0; j < 8; j++) {
+          if (crc & 0x8000) {
+            crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+          } else {
+            crc = (crc << 1) & 0xFFFF;
+          }
+        }
+      }
+      return crc.toString(16).toUpperCase().padStart(4, '0');
+    }
+
+    function buildDynamicQris(staticStr, amount) {
+      // Keep internal spaces (e.g., merchant name). Only trim edges/newlines.
+      const cleaned = staticStr.replace(/\r?\n/g, '').trim();
+      let tags = parseTlv(cleaned);
+
+      tags = stripTag(stripTag(tags, '54'), '63');
+
+      const amountStr = amount % 1 === 0 ? `${amount.toFixed(2)}` : `${amount}`;
+      const tag54 = { tag: '54', value: amountStr, length: amountStr.length };
+
+      let inserted = false;
+      const rebuilt = [];
+      for (const t of tags) {
+        if (!inserted && t.tag === '58') {
+          rebuilt.push(tag54);
+          inserted = true;
+        }
+        rebuilt.push(t);
+      }
+      if (!inserted) rebuilt.push(tag54);
+
+      const payloadWithoutCRC = rebuilt.map(t => formatTlv(t.tag, t.value)).join('');
+      const crc = calculateCRC16CCITT(payloadWithoutCRC + '6304');
+      return payloadWithoutCRC + '6304' + crc;
+    }
+
+    function renderQR(text) {
+      qrCodeEl.innerHTML = '';
+      qr = new QRCode(qrCodeEl, {
+        text,
+        width: 240,
+        height: 240,
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    }
+
+    generateBtn.addEventListener('click', () => {
+      const raw = qrisInput.value.trim();
+      const amt = Number(amountInput.value);
+      if (!raw) return alert('Isi QRIS statis terlebih dahulu.');
+      if (!amt || amt <= 0) return alert('Nominal harus lebih dari 0.');
+      try {
+        const dynamic = buildDynamicQris(raw, amt);
+        outputQris.value = dynamic;
+        renderQR(dynamic);
+      } catch (e) {
+        console.error(e);
+        alert('Gagal menghasilkan QRIS. Periksa input.');
+      }
+    });
+
+    imageInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.getElementById('hiddenCanvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imageData.data, canvas.width, canvas.height);
+          if (code && code.data) {
+            qrisInput.value = code.data.trim();
+            alert('QR static berhasil didecode ke textarea.');
+          } else {
+            alert('Gagal decode gambar. Pastikan gambar jelas.');
+          }
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  </script>
+</body>
+</html>

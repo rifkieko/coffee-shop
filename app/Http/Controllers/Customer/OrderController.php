@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
-use App\Services\OrderPlacementService;
+use App\Services\QrisService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class OrderController extends Controller
 {
-    public function __construct(private OrderPlacementService $orderPlacementService)
+    public function __construct(private QrisService $qrisService)
     {
     }
 
@@ -27,11 +27,22 @@ class OrderController extends Controller
     {
         $this->authorizeOrder($order);
 
-        abort_if(! $order->xendit_invoice_url, 404);
+        $order->load(['items.menuItem']);
+
+        $payableAmount = (int) round((float) $order->total_amount);
+        $qrisString = null;
+
+        try {
+            $qrisString = $this->qrisService->generateFromEnv($payableAmount);
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
 
         return view('customer.orders.payment', [
-            'order' => $order->load(['items.menuItem']),
-            'invoiceUrl' => $order->xendit_invoice_url,
+            'order' => $order,
+            'qrisString' => $qrisString,
+            'payableAmount' => $payableAmount,
+            'uniqueCode' => $order->payment_payload['unique_code'] ?? null,
         ]);
     }
 

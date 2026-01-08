@@ -26,8 +26,6 @@ class Order extends Model
         'total_amount',
         'paid_amount',
         'paid_at',
-        'xendit_invoice_id',
-        'xendit_invoice_url',
         'payment_payload',
         'notes',
         'expires_at',

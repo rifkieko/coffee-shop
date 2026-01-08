@@ -18,7 +18,7 @@
                         <div class="rounded-[20px] border border-gray-100 bg-white p-4 shadow-sm">
                             <p class="text-xs uppercase tracking-[0.3em] text-gray-400">{{ __('Status Pembayaran') }}</p>
                             <p class="text-lg font-semibold text-gray-900">{{ $transactionStatus ? ucfirst($transactionStatus) : $order->payment_status->label() }}</p>
-                            <p class="text-xs text-gray-500">{{ __('Status Pembayaran Xendit') }}</p>
+                            <p class="text-xs text-gray-500">{{ __('Status Pembayaran Terakhir') }}</p>
                         </div>
                         <div class="rounded-[20px] border border-gray-100 bg-white p-4 shadow-sm">
                             <p class="text-xs uppercase tracking-[0.3em] text-gray-400">{{ __('Total Pembayaran') }}</p>

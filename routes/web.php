@@ -9,8 +9,6 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\Customer\OrderController as CustomerOrderController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\XenditWebhookController;
-use App\Http\Controllers\XenditRedirectController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -19,10 +17,6 @@ Route::get('/', [CatalogController::class, 'index'])->name('home');
 Route::get('/menu', [CatalogController::class, 'index'])->name('catalog.index');
 Route::get('/menu/search', [CatalogController::class, 'lookup'])->name('catalog.search');
 Route::get('/menu/items/{menuItem}', [CatalogController::class, 'show'])->name('catalog.show');
-
-Route::post('/xendit/webhook', XenditWebhookController::class)->name('xendit.webhook');
-Route::get('/xendit/success/{orderNumber?}', [XenditRedirectController::class, 'success'])->name('xendit.success');
-Route::get('/xendit/failed/{orderNumber?}', [XenditRedirectController::class, 'failed'])->name('xendit.failed');
 
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
@@ -33,7 +27,10 @@ Route::get('/cart/summary', [CartController::class, 'summary'])->name('cart.summ
 
 Route::get('/checkout', [CheckoutController::class, 'show'])->name('checkout.show');
 Route::post('/checkout', [CheckoutController::class, 'store'])->name('checkout.store');
-Route::get('/checkout/orders/{order}/{invoice}', [CheckoutController::class, 'payment'])->name('checkout.payment');
+Route::get('/checkout/orders/{order:order_number}', [CheckoutController::class, 'payment'])->name('checkout.payment');
+Route::post('/checkout/orders/{order:order_number}/confirm', [CheckoutController::class, 'confirmPayment'])->name('checkout.confirm-payment');
+Route::get('/checkout/orders/{order:order_number}/status', [CheckoutController::class, 'status'])->name('checkout.status');
+Route::get('/checkout/orders/{order:order_number}/paid', [CheckoutController::class, 'paid'])->name('checkout.paid');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

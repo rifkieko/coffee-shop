@@ -5,27 +5,20 @@ namespace App\Services;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\UserRole;
-use App\Exceptions\PaymentException;
 use App\Models\MenuItem;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
 use App\Notifications\LowStockNotification;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
-use Throwable;
 
 class OrderPlacementService
 {
-    public function __construct(private XenditService $xenditService)
-    {
-    }
-
     /**
      * Place an order using cart items (preserving item options).
      */
@@ -43,14 +36,14 @@ class OrderPlacementService
             throw ValidationException::withMessages(['items' => 'Keranjang kosong.']);
         }
 
-        [$order, $menuItems, $aggregated] = DB::transaction(function () use ($cart, $notes, $user, $customerData, $tableNumber) {
+        return DB::transaction(function () use ($cart, $notes, $user, $customerData, $tableNumber) {
             $menuItems = $cart->items->pluck('menuItem')->filter()->keyBy('id');
             if ($menuItems->isEmpty()) {
                 throw ValidationException::withMessages(['items' => 'Menu tidak ditemukan.']);
             }
 
             // Aggregate quantities per menu for stock validation
-            $aggregated = $cart->items->groupBy('menu_item_id')->map(fn($group) => (int) $group->sum('quantity'));
+            $aggregated = $cart->items->groupBy('menu_item_id')->map(fn ($group) => (int) $group->sum('quantity'));
 
             foreach ($menuItems as $menuItem) {
                 if (! $menuItem->is_active) {
@@ -66,8 +59,8 @@ class OrderPlacementService
                 'customer_name' => $customerData['customer_name'] ?? $user?->name,
                 'customer_email' => $customerData['customer_email'] ?? $user?->email,
                 'customer_phone' => $customerData['customer_phone'] ?? $user?->phone,
-                'status' => \App\Enums\OrderStatus::Pending,
-                'payment_status' => \App\Enums\PaymentStatus::Unpaid,
+                'status' => OrderStatus::Pending,
+                'payment_status' => PaymentStatus::Unpaid,
                 'notes' => $notes,
             ];
             // Graceful fallback if column not yet migrated
@@ -104,13 +97,8 @@ class OrderPlacementService
 
             $order->update(['total_amount' => $total]);
 
-            return [$order, $menuItems->values(), $aggregated];
+            return $order;
         });
-
-        // Build payload using aggregated quantities
-        $this->attachXenditInvoice($order, $menuItems, collect($aggregated), $user, $customerData);
-
-        return $order;
     }
 
     /**
@@ -135,7 +123,7 @@ class OrderPlacementService
             ]);
         }
 
-        [$order, $menuItems, $lowStockItems] = $this->createOrderWithinTransaction(
+        [$order, $lowStockItems] = $this->createOrderWithinTransaction(
             $items,
             $notes,
             $user,
@@ -145,13 +133,11 @@ class OrderPlacementService
 
         $this->notifyLowStock($lowStockItems);
 
-        $this->attachXenditInvoice($order, $menuItems, $items, $user, $customerData);
-
         return $order;
     }
 
     /**
-     * @return array{0: Order, 1: Collection<int, MenuItem>, 2: Collection<int, MenuItem>}
+     * @return array{0: Order, 1: Collection<int, MenuItem>}
      */
     protected function createOrderWithinTransaction(
         Collection $items,
@@ -238,7 +224,7 @@ class OrderPlacementService
                 'total_amount' => $total,
             ]);
 
-            return [$order, $menuItems->values(), $lowStockAlerts];
+            return [$order, $lowStockAlerts];
         });
     }
 
@@ -259,39 +245,4 @@ class OrderPlacementService
         }
     }
 
-    protected function attachXenditInvoice(
-        Order $order,
-        Collection $menuItems,
-        Collection $quantities,
-        ?User $user,
-        array $customerData
-    ): void {
-        try {
-            $invoice = $this->xenditService->createInvoice(
-                $order,
-                $menuItems,
-                $quantities,
-                $customerData,
-                [
-                    'success_url' => route('xendit.success', ['orderNumber' => $order->order_number]),
-                    'failure_url' => route('xendit.failed', ['orderNumber' => $order->order_number]),
-                ]
-            );
-
-            $expiry = null;
-            if (! empty($invoice['expiry_date'])) {
-                $expiry = Carbon::parse($invoice['expiry_date']);
-            }
-
-            $order->update([
-                'xendit_invoice_id' => $invoice['id'] ?? null,
-                'xendit_invoice_url' => $invoice['invoice_url'] ?? null,
-                'payment_status' => PaymentStatus::Pending,
-                'payment_payload' => $invoice,
-                'expires_at' => $expiry,
-            ]);
-        } catch (Throwable $exception) {
-            throw new PaymentException('Tidak dapat membuat transaksi pembayaran.', 0, $exception, $order);
-        }
-    }
 }

@@ -1,38 +1,97 @@
+@php
+    use SimpleSoftwareIO\QrCode\Facades\QrCode;
+@endphp
+
 @extends('layouts.public')
 
 @section('content')
-    <section class="py-10 sm:py-12">
+    <section class="py-10 sm:py-12 bg-white text-gray-900">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-lg rounded-2xl p-6 sm:p-8 space-y-5">
+            <div class="bg-white text-gray-900 overflow-hidden shadow-lg rounded-2xl border border-gray-200 p-6 sm:p-8 space-y-6">
                 <div class="flex flex-col gap-2 text-center sm:text-left">
-                    <h1 class="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-gray-100">
+                    <h1 class="text-2xl sm:text-3xl font-semibold text-gray-900">
                         {{ __('Pembayaran Pesanan') }} #{{ $order->order_number }}
                     </h1>
-                    <p class="text-sm text-gray-600 dark:text-gray-300 max-w-2xl mx-auto sm:mx-0">
-                        {{ __('Tekan tombol berikut untuk membuka halaman pembayaran Xendit. Setelah selesai, status pesanan akan diperbarui otomatis melalui webhook.') }}
+                    <p class="text-sm text-gray-600 max-w-2xl mx-auto sm:mx-0 leading-relaxed">
+                        {{ __('Scan QRIS di bawah ini. Total pembayaran') }} <span class="font-semibold text-gray-900">Rp{{ number_format($payableAmount, 0, ',', '.') }}</span> {{ __('(termasuk 3 digit kode unik). Mohon transfer sesuai nominal hingga digit terakhir.') }}
                     </p>
                 </div>
+
                 @if (session('status'))
-                    <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-700 dark:border-emerald-500/40 dark:bg-emerald-500/10 dark:text-emerald-200">
+                    <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-700">
                         {{ session('status') }}
                     </div>
                 @endif
                 @if ($errors->any())
-                    <div class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-200">
+                    <div class="rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-700">
                         {{ $errors->first() }}
                     </div>
                 @endif
-                <button id="pay-button"
-                        class="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition">
-                    {{ __('Bayar Sekarang') }}
-                </button>
 
-                <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/60 p-4 sm:p-5 text-sm text-gray-600 dark:text-gray-300 space-y-2">
-                    <p>{{ __('Nama Pemesan:') }} <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $order->customer_name ?? '-' }}</span></p>
-                    <p>{{ __('Email:') }} <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $order->customer_email ?? '-' }}</span></p>
-                    <p>{{ __('Nomor Telepon:') }} <span class="font-semibold text-gray-900 dark:text-gray-100">{{ $order->customer_phone ?? '-' }}</span></p>
-                    <p>{{ __('Total Pembayaran:') }} <span class="font-semibold text-gray-900 dark:text-gray-100">Rp{{ number_format($order->total_amount, 0, ',', '.') }}</span></p>
-                    <p>{{ __('Jika pembayaran gagal, Anda dapat mencoba lagi atau hubungi barista untuk bantuan.') }}</p>
+                <div class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+                    <div class="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col items-center gap-4">
+                        @if ($qrisString)
+                            <div class="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                                <div id="qr-image-wrapper">{!! QrCode::format('svg')->size(240)->margin(1)->generate($qrisString) !!}</div>
+                            </div>
+                            <div class="flex justify-center">
+                                <button type="button"
+                                        id="download-qr"
+                                        class="inline-flex items-center gap-2 rounded-full bg-slate-800 text-white px-4 py-2 text-sm font-semibold shadow hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-600">
+                                    {{ __('Download QR') }}
+                                </button>
+                            </div>
+                        @else
+                            <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 text-center">
+                                {{ __('QRIS belum dapat dibuat otomatis. Mohon hubungi kasir untuk menyelesaikan pembayaran.') }}
+                            </div>
+                        @endif
+
+                        <div class="w-full flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-center text-sm text-gray-700">
+                            @if ($uniqueCode)
+                                <div class="rounded-full bg-indigo-50 text-indigo-700 px-4 py-2 font-semibold">
+                                    {{ __('Kode Unik') }}: {{ $uniqueCode }}
+                                </div>
+                            @endif
+                            <div class="rounded-full bg-emerald-50 text-emerald-700 px-4 py-2 font-semibold">
+                                {{ __('Total') }}: Rp{{ number_format($payableAmount, 0, ',', '.') }}
+                            </div>
+                        </div>
+
+                        <form method="POST" action="{{ route('checkout.confirm-payment', ['order' => $order->order_number]) }}" class="w-full sm:w-auto">
+                            @csrf
+                            <button type="submit"
+                                    class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-full bg-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow hover:bg-indigo-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 transition">
+                                {{ __('Saya Sudah Bayar') }}
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="space-y-4 rounded-2xl border border-gray-200 bg-white p-5 text-sm text-gray-700">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-500">{{ __('Nama Pemesan') }}</span>
+                            <span class="font-semibold text-gray-900">{{ $order->customer_name ?? '-' }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-500">{{ __('Nomor Telepon') }}</span>
+                            <span class="font-semibold text-gray-900">{{ $order->customer_phone ?? '-' }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-500">{{ __('Email') }}</span>
+                            <span class="font-semibold text-gray-900">{{ $order->customer_email ?? '-' }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-500">{{ __('Nomor Meja') }}</span>
+                            <span class="font-semibold text-gray-900">{{ $order->table_number ?? '-' }}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-500">{{ __('Total Pembayaran') }}</span>
+                            <span class="font-semibold text-gray-900">Rp{{ number_format($payableAmount, 0, ',', '.') }}</span>
+                        </div>
+                        <p class="text-xs text-gray-500">
+                            {{ __('Status Pembayaran:') }} <span class="font-semibold" data-payment-status>{{ $order->payment_status->label() }}</span>
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -58,29 +117,95 @@
     </section>
 @endsection
 
+@push('styles')
+    <style>
+        /* Paksa tema terang pada halaman pembayaran */
+        :root { color-scheme: light; }
+        body { background: #fff !important; color: #111827 !important; }
+    </style>
+@endpush
+
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const payButton = document.querySelector('#pay-button');
+            const statusUrl = @json(route('checkout.status', ['order' => $order->order_number]));
+            const paidUrl = @json(route('checkout.paid', ['order' => $order->order_number]));
+            const statusText = document.querySelector('[data-payment-status]');
 
-            if (!payButton) {
-                return;
-            }
-
-            const invoiceUrl = @json($invoiceUrl);
-            const shouldAutoLaunch = @json(request()->boolean('auto'));
-
-            const openInvoice = () => {
-                if (invoiceUrl) {
-                    window.location.href = invoiceUrl;
+            const updateStatus = (label) => {
+                if (statusText) {
+                    statusText.textContent = label;
                 }
             };
 
-            payButton.addEventListener('click', openInvoice);
+            const pollStatus = async () => {
+                try {
+                    const res = await fetch(statusUrl, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                        cache: 'no-store',
+                    });
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    if (data.payment_status === 'paid') {
+                        updateStatus(data.payment_status_label || 'Paid');
+                        window.location.href = paidUrl;
+                        return;
+                    }
+                    if (data.payment_status_label) {
+                        updateStatus(data.payment_status_label);
+                    }
+                } catch (e) {
+                    // ignore transient errors
+                }
+                setTimeout(pollStatus, 3500);
+            };
 
-            if (shouldAutoLaunch) {
-                setTimeout(openInvoice, 300);
-            }
+            pollStatus();
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const downloadBtn = document.querySelector('#download-qr');
+            const wrapper = document.querySelector('#qr-image-wrapper');
+            if (!downloadBtn || !wrapper) return;
+
+            const downloadJpeg = () => {
+                const svg = wrapper.querySelector('svg');
+                if (!svg) return;
+
+                const serializer = new XMLSerializer();
+                const svgString = serializer.serializeToString(svg);
+                const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+                const url = URL.createObjectURL(svgBlob);
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
+                    URL.revokeObjectURL(url);
+                    canvas.toBlob((blob) => {
+                        if (!blob) return;
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = 'qris-{{ $order->order_number }}.jpeg';
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        URL.revokeObjectURL(link.href);
+                    }, 'image/jpeg', 0.95);
+                };
+                img.src = url;
+            };
+
+            downloadBtn.addEventListener('click', downloadJpeg);
         });
     </script>
 @endpush

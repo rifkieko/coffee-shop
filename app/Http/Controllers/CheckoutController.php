@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Exceptions\PaymentException;
+use App\Enums\PaymentStatus;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Services\CartService;
 use App\Services\OrderPlacementService;
+use App\Services\QrisService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,7 +18,8 @@ class CheckoutController extends Controller
 {
     public function __construct(
         private CartService $cartService,
-        private OrderPlacementService $orderPlacementService
+        private OrderPlacementService $orderPlacementService,
+        private QrisService $qrisService,
     ) {
     }
 
@@ -85,111 +87,147 @@ class CheckoutController extends Controller
             return redirect()->route('cart.index')
                 ->withErrors($exception->errors())
                 ->withInput();
-        } catch (PaymentException $exception) {
-            report($exception);
-            $order = $exception->order();
-
-            if ($order) {
-                $this->finalizeCart($request, $cart);
-                $this->rememberOrderForGuest($request, $order, $validated['phone'] ?? null);
-
-                if ($order->xendit_invoice_url) {
-                    if ($request->expectsJson()) {
-                        return response()->json([
-                            'message' => __('Tidak dapat membuat transaksi pembayaran secara otomatis. Silakan coba lagi dari halaman pembayaran.'),
-                            'checkout_payment_url' => route('checkout.payment', [
-                                'order' => $order,
-                                'invoice' => $order->xendit_invoice_id,
-                                'auto' => 1,
-                            ]),
-                            'xendit' => [
-                                'invoice_id' => $order->xendit_invoice_id,
-                                'invoice_url' => $order->xendit_invoice_url,
-                            ],
-                        ], 422);
-                    }
-
-                    return redirect()->route('checkout.payment', [
-                        'order' => $order,
-                        'invoice' => $order->xendit_invoice_id,
-                        'auto' => 1,
-                    ])->withErrors(__('Tidak dapat membuat transaksi pembayaran secara otomatis. Silakan coba lagi dari halaman pembayaran.'));
-                }
-
-                if ($request->expectsJson()) {
-                    return response()->json([
-                        'message' => __('Pesanan berhasil dibuat, namun pembayaran belum dapat diproses. Silakan hubungi kasir.'),
-                    ], 422);
-                }
-
-                return redirect()->route('home')
-                    ->withErrors(__('Pesanan berhasil dibuat, namun pembayaran belum dapat diproses. Silakan hubungi kasir.'));
-            }
-
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => __('Tidak dapat memproses pembayaran. Silakan coba kembali.'),
-                ], 422);
-            }
-
-            return redirect()->route('cart.index')
-                ->withErrors(__('Tidak dapat memproses pembayaran. Silakan coba kembali.'));
         }
 
         $this->finalizeCart($request, $cart);
         $this->rememberOrderForGuest($request, $order, $validated['phone'] ?? null);
 
-        if (! $order->xendit_invoice_url) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => __('Pesanan berhasil dibuat, namun pembayaran belum dapat diproses. Silakan hubungi kasir.'),
-                ], 422);
-            }
+        $baseAmount = (int) round((float) $order->total_amount);
+        $uniqueCode = 0;
+        if ($baseAmount > 1) {
+            $uniqueCode = random_int(1, max(1, min(999, $baseAmount - 1)));
+        }
+        $adjustedBase = max(0, $baseAmount - $uniqueCode);
+        $payableAmount = $adjustedBase + $uniqueCode;
+        $paymentPayload = array_merge((array) $order->payment_payload, [
+            'base_amount' => $baseAmount,
+            'adjusted_base_amount' => $adjustedBase,
+            'unique_code' => $uniqueCode,
+            'qris_amount' => $payableAmount,
+        ]);
 
-            return redirect()->route('home')
-                ->withErrors(__('Pesanan berhasil dibuat, namun pembayaran belum dapat diproses. Silakan hubungi kasir.'));
+        $order->update([
+            'total_amount' => $payableAmount,
+            'payment_status' => PaymentStatus::Pending,
+            'payment_payload' => $paymentPayload,
+        ]);
+
+        $qrisString = null;
+
+        try {
+            $qrisString = $this->qrisService->generateFromEnv($payableAmount);
+            $this->cacheQrisString($request, $order, $qrisString);
+        } catch (\Throwable $exception) {
+            report($exception);
         }
 
         if ($request->expectsJson()) {
             return response()->json([
-                'message' => __('Pesanan berhasil dibuat. Lanjutkan ke pembayaran.'),
+                'message' => $qrisString
+                    ? __('Pesanan berhasil dibuat. Lanjutkan ke pembayaran.')
+                    : __('Pesanan berhasil dibuat, namun QRIS belum dapat dibuat otomatis. Silakan hubungi kasir.'),
                 'order' => [
                     'id' => $order->getKey(),
                     'number' => $order->order_number,
                     'show_url' => route('customer.orders.show', $order),
                 ],
-                'xendit' => [
-                    'invoice_id' => $order->xendit_invoice_id,
-                    'invoice_url' => $order->xendit_invoice_url,
-                    'result_urls' => [
-                        'success' => route('xendit.success', ['orderNumber' => $order->order_number]),
-                        'failed' => route('xendit.failed', ['orderNumber' => $order->order_number]),
-                    ],
+                'payment' => [
+                    'qris_string' => $qrisString,
+                    'amount' => $payableAmount,
+                    'unique_code' => $uniqueCode,
                 ],
                 'checkout_payment_url' => route('checkout.payment', [
-                    'order' => $order,
-                    'invoice' => $order->xendit_invoice_id,
-                    'auto' => 1,
+                    'order' => $order->order_number,
                 ]),
             ]);
         }
 
+        if (! $qrisString) {
+            return redirect()->route('home')
+                ->withErrors(__('Pesanan berhasil dibuat, namun QRIS belum dapat dibuat otomatis. Silakan hubungi kasir.'));
+        }
+
         return redirect()->route('checkout.payment', [
-            'order' => $order,
-            'invoice' => $order->xendit_invoice_id,
-            'auto' => 1,
+            'order' => $order->order_number,
         ])->with('status', __('Pesanan berhasil dibuat. Lanjutkan ke pembayaran.'));
     }
 
-    public function payment(Order $order, string $invoice): View
+    public function payment(Request $request, Order $order): View
     {
-        abort_if($order->xendit_invoice_id !== $invoice || ! $order->xendit_invoice_url, 404);
+        abort_unless($this->canAccessOrder($request, $order), 404);
 
         $order->load('items.menuItem');
 
+        $payableAmount = (int) round((float) $order->total_amount);
+        $cachedQris = $this->getCachedQrisString($request, $order);
+        $qrisString = $cachedQris;
+
+        if (! $qrisString) {
+            try {
+                $qrisString = $this->qrisService->generateFromEnv($payableAmount);
+            } catch (\Throwable $exception) {
+                report($exception);
+                $qrisString = null;
+            }
+        }
+
+        if ($qrisString && ! $cachedQris) {
+            $this->cacheQrisString($request, $order, $qrisString);
+        }
+
         return view('customer.checkout.payment', [
             'order' => $order,
-            'invoiceUrl' => $order->xendit_invoice_url,
+            'qrisString' => $qrisString,
+            'payableAmount' => $payableAmount,
+            'uniqueCode' => $order->payment_payload['unique_code'] ?? null,
+        ]);
+    }
+
+    public function confirmPayment(Request $request, Order $order): RedirectResponse
+    {
+        abort_unless($this->canAccessOrder($request, $order), 404);
+
+        if ($order->payment_status === PaymentStatus::Paid) {
+            return back()->with('status', __('Pembayaran sudah ditandai lunas. Terima kasih!'));
+        }
+
+        $payload = (array) $order->payment_payload;
+        $payload['confirmation_requested_at'] = now()->toIso8601String();
+
+        $order->update([
+            'payment_status' => PaymentStatus::Pending,
+            'payment_payload' => $payload,
+        ]);
+
+        $redirectUrl = $request->user()
+            ? route('customer.orders.show', $order)
+            : route('checkout.payment', ['order' => $order->order_number]);
+
+        return redirect($redirectUrl)->with('status', __('Konfirmasi pembayaran sudah dikirim. Kami akan memverifikasi pembayaranmu secepatnya.'));
+    }
+
+    public function status(Request $request, Order $order): JsonResponse
+    {
+        abort_unless($this->canAccessOrder($request, $order), 404);
+
+        return response()->json([
+            'order_number' => $order->order_number,
+            'payment_status' => $order->payment_status->value,
+            'payment_status_label' => $order->payment_status->label(),
+            'order_status' => $order->status->value,
+            'paid_at' => $order->paid_at?->toIso8601String(),
+            'total_amount' => (float) $order->total_amount,
+        ]);
+    }
+
+    public function paid(Request $request, Order $order): View
+    {
+        abort_unless($this->canAccessOrder($request, $order), 404);
+
+        $order->load('items.menuItem');
+
+        return view('customer.checkout.paid', [
+            'order' => $order,
         ]);
     }
 
@@ -217,5 +255,38 @@ class CheckoutController extends Controller
         } catch (\Throwable $e) {
             // ignore
         }
+    }
+
+    protected function cacheQrisString(Request $request, Order $order, string $qrisString): void
+    {
+        $request->session()->put($this->qrisSessionKey($order), $qrisString);
+    }
+
+    protected function getCachedQrisString(Request $request, Order $order): ?string
+    {
+        return $request->session()->get($this->qrisSessionKey($order));
+    }
+
+    protected function qrisSessionKey(Order $order): string
+    {
+        $static = (string) (config('qris.static_qris') ?? env('SHOP_STATIC_QRIS'));
+        $amountHash = substr(hash('crc32b', (string) $order->total_amount), 0, 8);
+        $staticHash = substr(hash('crc32b', $static), 0, 8);
+
+        return 'qris.order.'.$order->getKey().'.'.$staticHash.'.'.$amountHash;
+    }
+
+    protected function canAccessOrder(Request $request, Order $order): bool
+    {
+        if ($request->user() && $request->user()->id === $order->user_id) {
+            return true;
+        }
+
+        $recentIds = (array) $request->session()->get('recent_orders', []);
+        if (in_array($order->id, $recentIds, true)) {
+            return true;
+        }
+
+        return $request->session()->get('last_order_number') === $order->order_number;
     }
 }

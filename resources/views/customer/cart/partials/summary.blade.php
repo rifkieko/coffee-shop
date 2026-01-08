@@ -32,7 +32,7 @@
                 <span>Rp{{ number_format($cart->subtotal, 0, ',', '.') }}</span>
             </div>
             <p class="mt-1 text-xs text-gray-500">
-                {{ __('Harga belum termasuk biaya layanan pembayaran dari Xendit (jika ada).') }}
+                {{ __('Total akhir akan ditambahkan kode unik 3 digit saat checkout untuk memudahkan verifikasi pembayaran.') }}
             </p>
         </div>
     @endif

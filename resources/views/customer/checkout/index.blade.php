@@ -220,16 +220,15 @@
                     }
 
                     const data = rawData && typeof rawData === 'object' ? rawData : {};
-                    const xenditData = data.xendit && typeof data.xendit === 'object' ? data.xendit : {};
-
-                    if (xenditData.invoice_url) {
-                        window.location.href = xenditData.invoice_url;
-                        return;
-                    }
+                    const paymentData = data.payment && typeof data.payment === 'object' ? data.payment : {};
 
                     if (data.checkout_payment_url) {
                         window.location.href = data.checkout_payment_url;
                         return;
+                    }
+
+                    if (paymentData.qris_string) {
+                        sessionStorage.setItem('latest_qris_string', paymentData.qris_string);
                     }
 
                     const message = data.message ? data.message : '{{ __('Pesanan berhasil dibuat, namun pembayaran belum dapat diproses. Silakan hubungi kasir.') }}';

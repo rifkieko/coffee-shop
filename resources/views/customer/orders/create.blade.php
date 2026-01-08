@@ -97,7 +97,7 @@
                                     <x-input-error :messages="$errors->get('notes')" class="mt-2" />
                                 </div>
                                 <p class="text-sm text-gray-500 dark:text-gray-400">
-                                    {{ __('Setelah menekan tombol pesan, Anda akan diarahkan ke halaman pembayaran Xendit.') }}
+                                    {{ __('Setelah menekan tombol pesan, Anda akan diarahkan ke halaman pembayaran QRIS dengan nominal otomatis.') }}
                                 </p>
                                 <x-primary-button class="w-full justify-center">
                                     {{ __('Buat Pesanan & Bayar') }}

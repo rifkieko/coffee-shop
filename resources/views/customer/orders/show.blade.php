@@ -58,15 +58,15 @@
                             </dl>
                         </div>
                         <div class="space-y-4">
-                            @if ($order->payment_status !== \App\Enums\PaymentStatus::Paid && $order->xendit_invoice_url)
-                                <div class="bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700 rounded-md p-4">
-                                    <h4 class="text-sm font-semibold text-indigo-700 dark:text-indigo-300 mb-2">{{ __('Status Pembayaran') }}</h4>
-                                    <p class="text-xs text-indigo-600 dark:text-indigo-200 mb-3">
-                                        {{ __('Jika pembayaran belum selesai, Anda dapat melanjutkan proses melalui tombol di bawah ini.') }}
+                            @if ($order->payment_status !== \App\Enums\PaymentStatus::Paid)
+                                <div class="bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700 rounded-md p-4 space-y-2">
+                                    <h4 class="text-sm font-semibold text-indigo-700 dark:text-indigo-300">{{ __('Instruksi Pembayaran') }}</h4>
+                                    <p class="text-xs text-indigo-600 dark:text-indigo-200">
+                                        {{ __('Scan QRIS dan bayar sesuai total hingga digit terakhir. Tekan tombol di bawah untuk melihat kode QR.') }}
                                     </p>
                                     <a href="{{ route('customer.orders.payment', $order) }}"
                                        class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-md hover:bg-indigo-500">
-                                        {{ __('Bayar Sekarang') }}
+                                        {{ __('Lihat QRIS Pembayaran') }}
                                     </a>
                                 </div>
                             @endif
