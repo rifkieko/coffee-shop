@@ -11,6 +11,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
 use App\Notifications\LowStockNotification;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +22,7 @@ use Throwable;
 
 class OrderPlacementService
 {
-    public function __construct(private MidtransService $midtransService)
+    public function __construct(private XenditService $xenditService)
     {
     }
 
@@ -107,7 +108,7 @@ class OrderPlacementService
         });
 
         // Build payload using aggregated quantities
-        $this->attachMidtransTransaction($request, $order, $menuItems, collect($aggregated), $user, $customerData);
+        $this->attachXenditInvoice($order, $menuItems, collect($aggregated), $user, $customerData);
 
         return $order;
     }
@@ -144,7 +145,7 @@ class OrderPlacementService
 
         $this->notifyLowStock($lowStockItems);
 
-        $this->attachMidtransTransaction($request, $order, $menuItems, $items, $user, $customerData);
+        $this->attachXenditInvoice($order, $menuItems, $items, $user, $customerData);
 
         return $order;
     }
@@ -258,8 +259,7 @@ class OrderPlacementService
         }
     }
 
-    protected function attachMidtransTransaction(
-        Request $request,
+    protected function attachXenditInvoice(
         Order $order,
         Collection $menuItems,
         Collection $quantities,
@@ -267,58 +267,31 @@ class OrderPlacementService
         array $customerData
     ): void {
         try {
-            $payload = $this->buildMidtransPayload($order, $menuItems, $quantities, $user, $customerData, $request);
+            $invoice = $this->xenditService->createInvoice(
+                $order,
+                $menuItems,
+                $quantities,
+                $customerData,
+                [
+                    'success_url' => route('xendit.success', ['orderNumber' => $order->order_number]),
+                    'failure_url' => route('xendit.failed', ['orderNumber' => $order->order_number]),
+                ]
+            );
 
-            $transaction = $this->midtransService->createTransaction($payload);
+            $expiry = null;
+            if (! empty($invoice['expiry_date'])) {
+                $expiry = Carbon::parse($invoice['expiry_date']);
+            }
 
             $order->update([
-                'midtrans_order_id' => $payload['transaction_details']['order_id'] ?? null,
-                'midtrans_token' => $transaction['token'] ?? null,
-                'midtrans_redirect_url' => $transaction['redirect_url'] ?? null,
+                'xendit_invoice_id' => $invoice['id'] ?? null,
+                'xendit_invoice_url' => $invoice['invoice_url'] ?? null,
                 'payment_status' => PaymentStatus::Pending,
-                'payment_payload' => $transaction,
+                'payment_payload' => $invoice,
+                'expires_at' => $expiry,
             ]);
         } catch (Throwable $exception) {
             throw new PaymentException('Tidak dapat membuat transaksi pembayaran.', 0, $exception, $order);
         }
-    }
-
-    protected function buildMidtransPayload(
-        Order $order,
-        Collection $menuItems,
-        Collection $quantities,
-        ?User $user,
-        array $customerData,
-        Request $request
-    ): array {
-        $customerName = $customerData['customer_name'] ?? $user?->name;
-        $customerEmail = $customerData['customer_email'] ?? $user?->email;
-        $customerPhone = $customerData['customer_phone'] ?? $user?->phone;
-
-        return [
-            'transaction_details' => [
-                'order_id' => $order->order_number,
-                'gross_amount' => (int) round($order->total_amount),
-            ],
-            'customer_details' => [
-                'first_name' => $customerName,
-                'email' => $customerEmail,
-                'phone' => $customerPhone,
-            ],
-            'item_details' => $menuItems->map(function (MenuItem $menuItem) use ($quantities) {
-                return [
-                    'id' => (string) $menuItem->id,
-                    'price' => (int) round($menuItem->price),
-                    'quantity' => $quantities[$menuItem->id] ?? 1,
-                    'name' => $menuItem->name,
-                ];
-            })->values()->all(),
-            'callbacks' => [
-                'finish' => config('midtrans.callbacks.finish'),
-                'error' => config('midtrans.callbacks.error'),
-                'notification' => config('midtrans.callbacks.notification'),
-                'unfinish' => config('midtrans.callbacks.unfinish'),
-            ],
-        ];
     }
 }

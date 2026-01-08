@@ -62,17 +62,24 @@ class SalesReportController extends Controller
                 'Nomor Pesanan',
                 'Nama Pelanggan',
                 'Meja',
+                'Menu Dibeli',
                 'Status Pesanan',
                 'Status Pembayaran',
                 'Total (Rp)',
             ], $delimiter);
 
             foreach ($orders as $order) {
+                $items = $order->items->map(function ($item) {
+                    $name = $item->menu_name ?? $item->menuItem?->name ?? 'Menu';
+                    return "{$item->quantity}x {$name}";
+                })->join('; ');
+
                 fputcsv($handle, [
                     $order->created_at->timezone('Asia/Jakarta')->format('Y-m-d H:i'),
                     $order->order_number,
                     $order->customer_name ?? $order->user?->name ?? 'Tamu',
                     $order->table_number ?? 'Take Away',
+                    $items,
                     $order->status->label(),
                     $order->payment_status->label(),
                     $order->total_amount,
@@ -110,7 +117,7 @@ class SalesReportController extends Controller
 
     protected function buildBaseQuery(array $filters)
     {
-        return Order::with(['user'])
+        return Order::with(['user', 'items.menuItem'])
             ->where('payment_status', PaymentStatus::Paid)
             ->when($filters['start_date'] ?? null, fn ($query, $date) => $query->whereDate('created_at', '>=', $date))
             ->when($filters['end_date'] ?? null, fn ($query, $date) => $query->whereDate('created_at', '<=', $date));

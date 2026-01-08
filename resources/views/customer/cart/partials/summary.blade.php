@@ -32,7 +32,7 @@
                 <span>Rp{{ number_format($cart->subtotal, 0, ',', '.') }}</span>
             </div>
             <p class="mt-1 text-xs text-gray-500">
-                {{ __('Harga belum termasuk biaya layanan pembayaran dari Midtrans (jika ada).') }}
+                {{ __('Harga belum termasuk biaya layanan pembayaran dari Xendit (jika ada).') }}
             </p>
         </div>
     @endif

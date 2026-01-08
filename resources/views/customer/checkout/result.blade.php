@@ -18,7 +18,7 @@
                         <div class="rounded-[20px] border border-gray-100 bg-white p-4 shadow-sm">
                             <p class="text-xs uppercase tracking-[0.3em] text-gray-400">{{ __('Status Pembayaran') }}</p>
                             <p class="text-lg font-semibold text-gray-900">{{ $transactionStatus ? ucfirst($transactionStatus) : $order->payment_status->label() }}</p>
-                            <p class="text-xs text-gray-500">{{ __('Status Transaksi Midtrans') }}</p>
+                            <p class="text-xs text-gray-500">{{ __('Status Pembayaran Xendit') }}</p>
                         </div>
                         <div class="rounded-[20px] border border-gray-100 bg-white p-4 shadow-sm">
                             <p class="text-xs uppercase tracking-[0.3em] text-gray-400">{{ __('Total Pembayaran') }}</p>
@@ -63,7 +63,7 @@
                         <tbody class="divide-y divide-gray-200">
                             @foreach ($order->items as $item)
                                 <tr>
-                                    <td class="px-4 py-3 font-medium text-gray-900">{{ $item->menuItem?->name ?? '-' }}</td>
+                                    <td class="px-4 py-3 font-medium text-gray-900">{{ $item->menu_name ?? $item->menuItem?->name ?? '-' }}</td>
                                     <td class="px-4 py-3 text-center text-gray-600">{{ $item->quantity }}</td>
                                     <td class="px-4 py-3 text-right text-gray-600">Rp{{ number_format($item->unit_price, 0, ',', '.') }}</td>
                                     <td class="px-4 py-3 text-right font-semibold text-gray-900">Rp{{ number_format($item->subtotal, 0, ',', '.') }}</td>

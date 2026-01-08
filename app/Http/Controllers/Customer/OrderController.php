@@ -27,11 +27,11 @@ class OrderController extends Controller
     {
         $this->authorizeOrder($order);
 
-        abort_if(! $order->midtrans_token, 404);
+        abort_if(! $order->xendit_invoice_url, 404);
 
         return view('customer.orders.payment', [
             'order' => $order->load(['items.menuItem']),
-            'midtransClientKey' => config('midtrans.client_key'),
+            'invoiceUrl' => $order->xendit_invoice_url,
         ]);
     }
 

@@ -9,7 +9,7 @@
                         {{ __('Pembayaran Pesanan') }} #{{ $order->order_number }}
                     </h1>
                     <p class="text-sm text-gray-600 dark:text-gray-300 max-w-2xl mx-auto sm:mx-0">
-                        {{ __('Tekan tombol berikut untuk membuka halaman pembayaran Midtrans. Setelah selesai, status pesanan akan diperbarui otomatis.') }}
+                        {{ __('Tekan tombol berikut untuk membuka halaman pembayaran Xendit. Setelah selesai, status pesanan akan diperbarui otomatis melalui webhook.') }}
                     </p>
                 </div>
                 @if (session('status'))
@@ -42,7 +42,7 @@
                     @foreach ($order->items as $item)
                         <div class="pt-0 first:pt-0 sm:pt-3 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                             <div class="space-y-1">
-                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $item->menuItem?->name ?? '-' }}</p>
+                                <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $item->menu_name ?? $item->menuItem?->name ?? '-' }}</p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400">
                                     {{ $item->quantity }} x Rp{{ number_format($item->unit_price, 0, ',', '.') }}
                                 </p>
@@ -59,7 +59,6 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ config('midtrans.snap_url', 'https://app.sandbox.midtrans.com/snap/snap.js') }}" data-client-key="{{ $midtransClientKey }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const payButton = document.querySelector('#pay-button');
@@ -68,63 +67,19 @@
                 return;
             }
 
-            const routes = {
-                finish: @json(route('midtrans.finish')),
-                unfinish: @json(route('midtrans.unfinish')),
-                error: @json(route('midtrans.error')),
-            };
-            const orderNumber = @json($order->order_number);
+            const invoiceUrl = @json($invoiceUrl);
             const shouldAutoLaunch = @json(request()->boolean('auto'));
 
-            const redirectWith = (key, result = {}) => {
-                const base = routes[key] ?? routes.finish;
-                const url = new URL(base, window.location.origin);
-
-                if (orderNumber) {
-                    url.searchParams.set('order_id', orderNumber);
+            const openInvoice = () => {
+                if (invoiceUrl) {
+                    window.location.href = invoiceUrl;
                 }
-
-                if (result.transaction_status) {
-                    url.searchParams.set('transaction_status', result.transaction_status);
-                }
-
-                if (result.status_message) {
-                    url.searchParams.set('status_message', result.status_message);
-                }
-
-                window.location.href = url.toString();
             };
 
-            payButton.addEventListener('click', function () {
-                window.snap.pay('{{ $order->midtrans_token }}', {
-                    onSuccess: function (result) {
-                        redirectWith('finish', result);
-                    },
-                    onPending: function (result) {
-                        redirectWith('finish', result);
-                    },
-                    onError: function (result) {
-                        redirectWith('error', result);
-                    },
-                    onClose: function () {
-                        redirectWith('unfinish', { transaction_status: 'pending', status_message: 'Payment window closed by user' });
-                    }
-                });
-            });
+            payButton.addEventListener('click', openInvoice);
 
             if (shouldAutoLaunch) {
-                setTimeout(() => {
-                    payButton.click();
-
-                    try {
-                        const currentUrl = new URL(window.location.href);
-                        currentUrl.searchParams.delete('auto');
-                        const newSearch = currentUrl.searchParams.toString();
-                        window.history.replaceState({}, document.title, currentUrl.pathname + (newSearch ? `?${newSearch}` : '') + currentUrl.hash);
-                    } catch (error) {
-                        // ignore history failures
-                    }
-                }, 300);
+                setTimeout(openInvoice, 300);
             }
         });
     </script>

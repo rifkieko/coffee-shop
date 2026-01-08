@@ -73,6 +73,7 @@
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">{{ __('Pesanan') }}</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">{{ __('Customer') }}</th>
                                 <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">{{ __('Meja') }}</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">{{ __('Menu Dibeli') }}</th>
                                 <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">{{ __('Total') }}</th>
                             </tr>
                         </thead>
@@ -91,13 +92,27 @@
                                     <td class="px-4 py-3 whitespace-nowrap text-gray-600">
                                         {{ $order->table_number ?? __('Take Away') }}
                                     </td>
+                                    <td class="px-4 py-3 text-gray-700">
+                                        @if ($order->items->isEmpty())
+                                            <span class="text-gray-400">-</span>
+                                        @else
+                                            <ul class="space-y-1">
+                                                @foreach ($order->items as $item)
+                                                    <li>
+                                                        <span class="font-semibold text-[#2A1A13]">{{ $item->quantity }}x</span>
+                                                        <span>{{ $item->menu_name ?? $item->menuItem?->name ?? __('Menu') }}</span>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        @endif
+                                    </td>
                                     <td class="px-4 py-3 whitespace-nowrap text-right text-gray-900 font-semibold">
                                         Rp{{ number_format($order->total_amount, 0, ',', '.') }}
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="px-4 py-6 text-center text-sm text-gray-500">
+                                    <td colspan="6" class="px-4 py-6 text-center text-sm text-gray-500">
                                         {{ __('Belum ada pesanan dibayar di rentang ini.') }}
                                     </td>
                                 </tr>
@@ -116,6 +131,18 @@
                             <div class="mt-2 space-y-1 text-sm text-gray-700">
                                 <p><span class="font-semibold text-[#2A1A13]">{{ __('Customer:') }}</span> {{ $order->customer_name ?? $order->user?->name ?? __('Tamu') }}</p>
                                 <p><span class="font-semibold text-[#2A1A13]">{{ __('Meja:') }}</span> {{ $order->table_number ?? __('Take Away') }}</p>
+                                <div>
+                                    <p class="font-semibold text-[#2A1A13]">{{ __('Menu Dibeli:') }}</p>
+                                    @if ($order->items->isEmpty())
+                                        <p class="text-gray-500 text-sm">-</p>
+                                    @else
+                                        <ul class="mt-1 space-y-0.5 text-sm text-gray-700">
+                                            @foreach ($order->items as $item)
+                                                <li>{{ $item->quantity }}x {{ $item->menu_name ?? $item->menuItem?->name ?? __('Menu') }}</li>
+                                            @endforeach
+                                        </ul>
+                                    @endif
+                                </div>
                             </div>
                             <div class="mt-3 flex items-center justify-between">
                                 <p class="text-xs text-gray-500">{{ __('Total') }}</p>

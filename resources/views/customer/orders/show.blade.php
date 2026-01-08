@@ -58,7 +58,7 @@
                             </dl>
                         </div>
                         <div class="space-y-4">
-                            @if ($order->payment_status !== \App\Enums\PaymentStatus::Paid && $order->midtrans_token)
+                            @if ($order->payment_status !== \App\Enums\PaymentStatus::Paid && $order->xendit_invoice_url)
                                 <div class="bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700 rounded-md p-4">
                                     <h4 class="text-sm font-semibold text-indigo-700 dark:text-indigo-300 mb-2">{{ __('Status Pembayaran') }}</h4>
                                     <p class="text-xs text-indigo-600 dark:text-indigo-200 mb-3">
@@ -99,7 +99,7 @@
                                 @foreach ($order->items as $item)
                                     <tr>
                                         <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
-                                            {{ $item->menuItem?->name ?? '-' }}
+                                            {{ $item->menu_name ?? $item->menuItem?->name ?? '-' }}
                                         </td>
                                         <td class="px-4 py-3 text-sm text-center text-gray-900 dark:text-gray-100">
                                             {{ $item->quantity }}

@@ -143,7 +143,7 @@
                                 @foreach ($order->items as $item)
                                     <tr>
                                         <td class="px-4 py-3 text-sm text-gray-900 dark:text-gray-100">
-                                            {{ $item->menuItem?->name ?? '-' }}
+                                            {{ $item->menu_name ?? $item->menuItem?->name ?? '-' }}
                                         </td>
                                         <td class="px-4 py-3 text-sm text-center text-gray-900 dark:text-gray-100">
                                             {{ $item->quantity }}

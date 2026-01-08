@@ -12,6 +12,7 @@ class OrderItem extends Model
     protected $fillable = [
         'order_id',
         'menu_item_id',
+        'menu_name',
         'quantity',
         'unit_price',
         'subtotal',
@@ -29,6 +30,11 @@ class OrderItem extends Model
         static::saving(function (self $item): void {
             if ($item->unit_price === null && $item->menuItem) {
                 $item->unit_price = $item->menuItem->price;
+            }
+
+            // Persist menu name snapshot to keep report history even if menu changes later.
+            if ($item->menu_name === null && $item->menuItem) {
+                $item->menu_name = $item->menuItem->name;
             }
 
             $item->subtotal = $item->quantity * $item->unit_price;

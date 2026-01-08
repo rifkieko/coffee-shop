@@ -33,12 +33,6 @@ class CheckoutController extends Controller
         return view('customer.checkout.index', [
             'cart' => $cart,
             'user' => $request->user(),
-            'midtransClientKey' => config('midtrans.client_key'),
-            'midtransRoutes' => [
-                'finish' => route('midtrans.finish'),
-                'unfinish' => route('midtrans.unfinish'),
-                'error' => route('midtrans.error'),
-            ],
         ]);
     }
 
@@ -99,21 +93,25 @@ class CheckoutController extends Controller
                 $this->finalizeCart($request, $cart);
                 $this->rememberOrderForGuest($request, $order, $validated['phone'] ?? null);
 
-                if ($order->midtrans_token) {
+                if ($order->xendit_invoice_url) {
                     if ($request->expectsJson()) {
                         return response()->json([
                             'message' => __('Tidak dapat membuat transaksi pembayaran secara otomatis. Silakan coba lagi dari halaman pembayaran.'),
                             'checkout_payment_url' => route('checkout.payment', [
                                 'order' => $order,
-                                'token' => $order->midtrans_token,
+                                'invoice' => $order->xendit_invoice_id,
                                 'auto' => 1,
                             ]),
+                            'xendit' => [
+                                'invoice_id' => $order->xendit_invoice_id,
+                                'invoice_url' => $order->xendit_invoice_url,
+                            ],
                         ], 422);
                     }
 
                     return redirect()->route('checkout.payment', [
                         'order' => $order,
-                        'token' => $order->midtrans_token,
+                        'invoice' => $order->xendit_invoice_id,
                         'auto' => 1,
                     ])->withErrors(__('Tidak dapat membuat transaksi pembayaran secara otomatis. Silakan coba lagi dari halaman pembayaran.'));
                 }
@@ -141,7 +139,7 @@ class CheckoutController extends Controller
         $this->finalizeCart($request, $cart);
         $this->rememberOrderForGuest($request, $order, $validated['phone'] ?? null);
 
-        if (! $order->midtrans_token) {
+        if (! $order->xendit_invoice_url) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => __('Pesanan berhasil dibuat, namun pembayaran belum dapat diproses. Silakan hubungi kasir.'),
@@ -160,18 +158,17 @@ class CheckoutController extends Controller
                     'number' => $order->order_number,
                     'show_url' => route('customer.orders.show', $order),
                 ],
-                'midtrans' => [
-                    'token' => $order->midtrans_token,
-                    'redirect_url' => $order->midtrans_redirect_url,
+                'xendit' => [
+                    'invoice_id' => $order->xendit_invoice_id,
+                    'invoice_url' => $order->xendit_invoice_url,
                     'result_urls' => [
-                        'finish' => route('midtrans.finish'),
-                        'unfinish' => route('midtrans.unfinish'),
-                        'error' => route('midtrans.error'),
+                        'success' => route('xendit.success', ['orderNumber' => $order->order_number]),
+                        'failed' => route('xendit.failed', ['orderNumber' => $order->order_number]),
                     ],
                 ],
                 'checkout_payment_url' => route('checkout.payment', [
                     'order' => $order,
-                    'token' => $order->midtrans_token,
+                    'invoice' => $order->xendit_invoice_id,
                     'auto' => 1,
                 ]),
             ]);
@@ -179,20 +176,20 @@ class CheckoutController extends Controller
 
         return redirect()->route('checkout.payment', [
             'order' => $order,
-            'token' => $order->midtrans_token,
+            'invoice' => $order->xendit_invoice_id,
             'auto' => 1,
         ])->with('status', __('Pesanan berhasil dibuat. Lanjutkan ke pembayaran.'));
     }
 
-    public function payment(Order $order, string $token): View
+    public function payment(Order $order, string $invoice): View
     {
-        abort_if($order->midtrans_token !== $token, 404);
+        abort_if($order->xendit_invoice_id !== $invoice || ! $order->xendit_invoice_url, 404);
 
         $order->load('items.menuItem');
 
         return view('customer.checkout.payment', [
             'order' => $order,
-            'midtransClientKey' => config('midtrans.client_key'),
+            'invoiceUrl' => $order->xendit_invoice_url,
         ]);
     }
 

@@ -8,26 +8,21 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-class MidtransRedirectController extends Controller
+class XenditRedirectController extends Controller
 {
-    public function finish(Request $request): View|RedirectResponse
+    public function success(Request $request, ?string $orderNumber = null): View|RedirectResponse
     {
-        return $this->handleRedirect($request, 'finish');
+        return $this->handleRedirect($request, $orderNumber, 'success');
     }
 
-    public function unfinish(Request $request): View|RedirectResponse
+    public function failed(Request $request, ?string $orderNumber = null): View|RedirectResponse
     {
-        return $this->handleRedirect($request, 'unfinish');
+        return $this->handleRedirect($request, $orderNumber, 'failed');
     }
 
-    public function error(Request $request): View|RedirectResponse
+    protected function handleRedirect(Request $request, ?string $orderNumber, string $type): View|RedirectResponse
     {
-        return $this->handleRedirect($request, 'error');
-    }
-
-    protected function handleRedirect(Request $request, string $type): View|RedirectResponse
-    {
-        $orderNumber = $request->query('order_id');
+        $orderNumber = $orderNumber ?: $request->query('order_id');
 
         if (! $orderNumber) {
             return redirect()->route('home')
@@ -41,14 +36,14 @@ class MidtransRedirectController extends Controller
                 ->withErrors(__('Pesanan tidak ditemukan. Silakan mulai kembali.'));
         }
 
-        $transactionStatus = $request->query('transaction_status');
-        $statusMessage = $request->query('status_message');
+        $invoiceStatus = strtoupper((string) $request->query('status', ''));
+        $statusMessage = $request->query('message');
 
-        $alert = $this->buildAlert($order->payment_status, $type, $transactionStatus);
+        $alert = $this->buildAlert($order->payment_status, $type, $invoiceStatus);
 
         return view('customer.checkout.result', [
             'order' => $order,
-            'transactionStatus' => $transactionStatus,
+            'transactionStatus' => $invoiceStatus,
             'statusMessage' => $statusMessage,
             'redirectType' => $type,
             'alert' => $alert,
@@ -58,10 +53,10 @@ class MidtransRedirectController extends Controller
     /**
      * @return array{title: string, message: string, tone: 'success'|'warning'|'danger'}
      */
-    protected function buildAlert(?PaymentStatus $paymentStatus, string $type, ?string $transactionStatus): array
+    protected function buildAlert(?PaymentStatus $paymentStatus, string $type, ?string $invoiceStatus): array
     {
-        if ($type === 'finish') {
-            if ($paymentStatus === PaymentStatus::Paid) {
+        if ($type === 'success') {
+            if ($paymentStatus === PaymentStatus::Paid || $invoiceStatus === 'PAID') {
                 return [
                     'title' => __('Pembayaran berhasil!'),
                     'message' => __('Pesananmu sudah kami terima. Silakan cek status terbaru di riwayat pesanan.'),
@@ -69,10 +64,10 @@ class MidtransRedirectController extends Controller
                 ];
             }
 
-            if ($paymentStatus === PaymentStatus::Pending || $transactionStatus === 'pending') {
+            if ($paymentStatus === PaymentStatus::Pending || $invoiceStatus === 'PENDING') {
                 return [
                     'title' => __('Pembayaran sedang diproses'),
-                    'message' => __('Kami sedang menunggu konfirmasi dari Midtrans. Pesananmu otomatis diperbarui setelah pembayaran diterima.'),
+                    'message' => __('Kami sedang menunggu konfirmasi dari Xendit. Pesananmu otomatis diperbarui setelah pembayaran diterima.'),
                     'tone' => 'warning',
                 ];
             }
@@ -84,16 +79,8 @@ class MidtransRedirectController extends Controller
             ];
         }
 
-        if ($type === 'unfinish') {
-            return [
-                'title' => __('Pembayaran belum selesai'),
-                'message' => __('Kamu menutup halaman pembayaran sebelum selesai. Silakan lanjutkan pembayaran dari riwayat pesanan.'),
-                'tone' => 'warning',
-            ];
-        }
-
         return [
-            'title' => __('Terjadi kesalahan'),
+            'title' => __('Pembayaran gagal atau dibatalkan'),
             'message' => __('Pembayaran gagal diproses. Silakan coba lagi atau hubungi kasir untuk bantuan lebih lanjut.'),
             'tone' => 'danger',
         ];

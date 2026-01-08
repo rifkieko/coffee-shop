@@ -9,14 +9,14 @@
                 <div class="rounded-2xl border border-[#F0E7D7] bg-[#FEF5DF]/80 p-4 text-sm text-[#4C2B1C]">
                     <p class="font-semibold">{{ __('Pembayaran sedang diproses') }}</p>
                     <p class="text-xs text-[#845F23]">
-                        {{ __('Kami sedang menunggu konfirmasi dari Midtrans. Pesanan akan otomatis diperbarui setelah pembayaran selesai.') }}
+                        {{ __('Kami sedang menunggu konfirmasi dari Xendit. Pesanan akan otomatis diperbarui setelah pembayaran selesai.') }}
                     </p>
                 </div>
                 <div class="grid gap-3 md:grid-cols-2">
                     <div class="rounded-2xl border border-gray-200 p-4">
                         <p class="text-xs uppercase tracking-[0.3em] text-gray-500">{{ __('Status Pembayaran') }}</p>
                         <p class="text-sm font-semibold text-gray-900">{{ $order->payment_status->label() }}</p>
-                        <p class="text-xs text-gray-500">{{ __('Status Transaksi Midtrans:') }} {{ ucfirst($order->payment_status->value ?? 'pending') }}</p>
+                        <p class="text-xs text-gray-500">{{ __('Status Pembayaran Xendit:') }} {{ ucfirst($order->payment_status->value ?? 'pending') }}</p>
                     </div>
                     <div class="rounded-2xl border border-gray-200 p-4">
                         <p class="text-xs uppercase tracking-[0.3em] text-gray-500">{{ __('Total Pembayaran') }}</p>
@@ -49,7 +49,7 @@
                     <tbody class="divide-y divide-gray-200">
                         @foreach ($order->items as $item)
                             <tr>
-                                <td class="px-4 py-3 font-medium text-gray-900">{{ $item->menuItem?->name ?? '-' }}</td>
+                                <td class="px-4 py-3 font-medium text-gray-900">{{ $item->menu_name ?? $item->menuItem?->name ?? '-' }}</td>
                                 <td class="px-4 py-3 text-center text-gray-600">{{ $item->quantity }}</td>
                                 <td class="px-4 py-3 text-right text-gray-600">Rp{{ number_format($item->unit_price, 0, ',', '.') }}</td>
                                 <td class="px-4 py-3 text-right font-semibold text-gray-900">Rp{{ number_format($item->subtotal, 0, ',', '.') }}</td>
@@ -61,147 +61,37 @@
         </div>
     </div>
 
-    @push('scripts')
-        <script src="{{ config('midtrans.snap_url', 'https://app.sandbox.midtrans.com/snap/snap.js') }}" data-client-key="{{ $midtransClientKey }}"></script>
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const payButton = document.querySelector('#pay-button');
-                const routes = {
-                    finish: @json(route('midtrans.finish')),
-                    unfinish: @json(route('midtrans.unfinish')),
-                    error: @json(route('midtrans.error')),
-                };
-                const orderNumber = @json($order->order_number);
-                if (!payButton) return;
-
-                const redirectWith = (key, result = {}) => {
-                    trackStatus(key);
-                    const base = routes[key] ?? routes.finish;
-                    const url = new URL(base, window.location.origin);
-                    if (orderNumber) {
-                        url.searchParams.set('order_id', orderNumber);
-                    }
-                    if (result.transaction_status) {
-                        url.searchParams.set('transaction_status', result.transaction_status);
-                    }
-                    if (result.status_message) {
-                        url.searchParams.set('status_message', result.status_message);
-                    }
-                    window.location.href = url.toString();
-                };
-
-                const trackStatus = (status) => {
-                    const log = document.getElementById('payment-log');
-                    if (!log) return;
-                    const entry = document.createElement('div');
-                    entry.className = 'text-[11px] text-gray-400';
-                    entry.textContent = `[${new Date().toLocaleTimeString()}] ${status}`;
-                    log.appendChild(entry);
-                };
-
-                payButton.addEventListener('click', function () {
-                    window.snap.pay('{{ $order->midtrans_token }}', {
-                        onSuccess(result) {
-                            redirectWith('finish', result);
-                        },
-                        onPending(result) {
-                            redirectWith('finish', result);
-                        },
-                        onError(result) {
-                            redirectWith('error', result);
-                        },
-                        onClose() {
-                            redirectWith('unfinish', { transaction_status: 'pending', status_message: 'Payment window closed by user' });
-                        }
-                    });
-                });
-            });
-        </script>
-    @endpush
-@endsection
-
-    <script src="{{ config('midtrans.snap_url', 'https://app.sandbox.midtrans.com/snap/snap.js') }}" data-client-key="{{ $midtransClientKey }}"></script>
+@push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const payButton = document.querySelector('#pay-button');
+            const invoiceUrl = @json($invoiceUrl);
+            const shouldAutoLaunch = @json(request()->boolean('auto'));
             const logEl = document.querySelector('#payment-log');
 
-            if (!payButton) {
-                return;
+            const logStatus = (status) => {
+                if (!logEl) return;
+                const entry = document.createElement('div');
+                entry.className = 'text-[11px] text-gray-400';
+                entry.textContent = `[${new Date().toLocaleTimeString()}] ${status}`;
+                logEl.appendChild(entry);
+            };
+
+            const openInvoice = () => {
+                if (invoiceUrl) {
+                    logStatus('open');
+                    window.location.href = invoiceUrl;
+                }
+            };
+
+            if (payButton) {
+                payButton.addEventListener('click', openInvoice);
             }
 
-            const routes = {
-                finish: @json(route('midtrans.finish')),
-                unfinish: @json(route('midtrans.unfinish')),
-                error: @json(route('midtrans.error')),
-            };
-            const orderNumber = @json($order->order_number);
-            const shouldAutoLaunch = @json(request()->boolean('auto'));
-
-            const logResult = (status) => {
-                if (!logEl) {
-                    return;
-                }
-
-                const item = document.createElement('div');
-                item.textContent = `[${new Date().toLocaleTimeString()}] ${status.toUpperCase()}`;
-                logEl.appendChild(item);
-            };
-
-            const redirectWith = (key, result = {}) => {
-                const base = routes[key] ?? routes.finish;
-                const url = new URL(base, window.location.origin);
-
-                if (orderNumber) {
-                    url.searchParams.set('order_id', orderNumber);
-                }
-
-                if (result.transaction_status) {
-                    url.searchParams.set('transaction_status', result.transaction_status);
-                }
-
-                if (result.status_message) {
-                    url.searchParams.set('status_message', result.status_message);
-                }
-
-                window.location.href = url.toString();
-            };
-
-            payButton.addEventListener('click', function () {
-                window.snap.pay('{{ $order->midtrans_token }}', {
-                    onSuccess: function (result) {
-                        logResult('success');
-                        redirectWith('finish', result);
-                    },
-                    onPending: function (result) {
-                        logResult('pending');
-                        redirectWith('finish', result);
-                    },
-                    onError: function (result) {
-                        logResult('error');
-                        redirectWith('error', result);
-                    },
-                    onClose: function () {
-                        logResult('closed');
-                        redirectWith('unfinish', { transaction_status: 'pending', status_message: 'Payment window closed by user' });
-                    }
-                });
-            });
-
             if (shouldAutoLaunch) {
-                setTimeout(() => {
-                    payButton.click();
-
-                    try {
-                        const currentUrl = new URL(window.location.href);
-                        currentUrl.searchParams.delete('auto');
-                        const newSearch = currentUrl.searchParams.toString();
-                        window.history.replaceState({}, document.title, currentUrl.pathname + (newSearch ? `?${newSearch}` : '') + currentUrl.hash);
-                    } catch (error) {
-                        // ignore history failures
-                    }
-                }, 300);
+                setTimeout(openInvoice, 300);
             }
         });
     </script>
-</x-app-layout>
+@endpush
+@endsection

@@ -91,7 +91,7 @@
                             <h3 class="text-base font-semibold text-[#5c783f]">{{ __('Metode Pembayaran') }}</h3>
                             <p class="text-xs text-[#7d8c4b]">{{ __('Pilih metode pembayaran yang Anda gunakan.') }}</p>
                             <label class="mt-3 flex cursor-pointer items-center justify-between rounded-[12px] border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-[#2A1A13] transition hover:border-[#b9b9b9] focus-within:border-[#7c8c48]">
-                                <input type="checkbox" name="payment_method" value="qris" class="sr-only peer" />
+                                <input type="checkbox" name="payment_method" value="qris" class="sr-only peer" checked />
                                 <div class="flex items-center gap-3">
                                     <span class="hidden h-6 w-6 items-center justify-center rounded-full border border-[#d1d1d1] bg-white text-[#2A1A13] md:inline-flex">
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4">
@@ -136,7 +136,6 @@
 @endsection
 
 @push('scripts')
-    <script src="{{ config('midtrans.snap_url', 'https://app.sandbox.midtrans.com/snap/snap.js') }}" data-client-key="{{ $midtransClientKey }}"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.querySelector('#checkout-form');
@@ -147,37 +146,36 @@
             const submitButton = form.querySelector('[data-checkout-submit]');
             const errorBox = form.querySelector('[data-checkout-error]');
             const defaultErrorMessage = '{{ __('Tidak dapat memproses pembayaran. Silakan coba kembali.') }}';
-            const routes = @json($midtransRoutes);
-            const paymentCheckbox = form.querySelector('input[name="payment_method"]');
-            if (paymentCheckbox && submitButton) {
-                const enableSubmit = () => {
-                    submitButton.disabled = false;
-                    submitButton.classList.remove('opacity-70', 'cursor-not-allowed');
-                };
-                const disableSubmit = () => {
-                    submitButton.disabled = true;
-                    submitButton.classList.add('opacity-70', 'cursor-not-allowed');
-                };
+            const paymentCheckbox = form.querySelector('input[name=\"payment_method\"]');
 
-                const handleToggle = () => {
+            const disableSubmit = () => {
+                if (!submitButton) return;
+                submitButton.disabled = true;
+                submitButton.classList.add('opacity-70', 'cursor-not-allowed');
+            };
+
+            const enableSubmit = () => {
+                if (!submitButton) return;
+                submitButton.disabled = false;
+                submitButton.classList.remove('opacity-70', 'cursor-not-allowed');
+            };
+
+            if (paymentCheckbox && submitButton) {
+                if (paymentCheckbox.checked) {
+                    enableSubmit();
+                } else {
+                    disableSubmit();
+                }
+                paymentCheckbox.addEventListener('change', () => {
                     if (paymentCheckbox.checked) {
                         enableSubmit();
                     } else {
                         disableSubmit();
                     }
-                };
-
-                disableSubmit();
-                paymentCheckbox.addEventListener('change', () => {
-                    handleToggle();
                 });
             }
 
             form.addEventListener('submit', async (event) => {
-                if (!window.snap || typeof fetch === 'undefined') {
-                    return;
-                }
-
                 event.preventDefault();
 
                 if (errorBox) {
@@ -185,12 +183,7 @@
                     errorBox.textContent = '';
                 }
 
-                if (submitButton) {
-                    submitButton.disabled = true;
-                    submitButton.classList.add('opacity-70', 'cursor-not-allowed');
-                }
-
-                let shouldReenable = true;
+                disableSubmit();
 
                 try {
                     const response = await fetch(form.action, {
@@ -203,6 +196,7 @@
                     });
 
                     const rawData = await response.json().catch(() => ({}));
+
                     if (!response.ok) {
                         let message = defaultErrorMessage;
                         if (rawData && typeof rawData === 'object') {
@@ -215,70 +209,36 @@
                                 message = rawData.message;
                             }
                         }
+
                         if (errorBox) {
                             errorBox.textContent = message;
                             errorBox.classList.remove('hidden');
                         } else {
                             alert(message);
-                        }
-                        if (response.headers.get('Content-Type')?.includes('text/html')) {
-                            window.location.reload();
                         }
                         return;
                     }
 
                     const data = rawData && typeof rawData === 'object' ? rawData : {};
-                    const midtransData = data.midtrans && typeof data.midtrans === 'object' ? data.midtrans : {};
-                    if (!midtransData.token) {
-                        const message = data.message ? data.message : '{{ __('Pesanan berhasil dibuat, namun pembayaran belum dapat diproses. Silakan hubungi kasir.') }}';
-                        if (errorBox) {
-                            errorBox.textContent = message;
-                            errorBox.classList.remove('hidden');
-                        } else {
-                            alert(message);
-                        }
+                    const xenditData = data.xendit && typeof data.xendit === 'object' ? data.xendit : {};
+
+                    if (xenditData.invoice_url) {
+                        window.location.href = xenditData.invoice_url;
                         return;
                     }
 
-                    const order = data.order && typeof data.order === 'object' ? data.order : {};
-                    const resultRoutes = midtransData.result_urls && typeof midtransData.result_urls === 'object' ? midtransData.result_urls : routes;
-                    const redirectWith = (key, result = {}) => {
-                        const base = (resultRoutes && resultRoutes[key]) ? resultRoutes[key] : ((resultRoutes && resultRoutes.finish) ? resultRoutes.finish : '{{ route('home') }}');
-                        try {
-                            const url = new URL(base, window.location.origin);
-                            if (order.number) {
-                                url.searchParams.set('order_id', order.number);
-                            }
-                            if (result && result.transaction_status) {
-                                url.searchParams.set('transaction_status', result.transaction_status);
-                            }
-                            if (result && result.status_message) {
-                                url.searchParams.set('status_message', result.status_message);
-                            }
-                            window.location.href = url.toString();
-                        } catch (error) {
-                            window.location.href = base;
-                        }
-                    };
+                    if (data.checkout_payment_url) {
+                        window.location.href = data.checkout_payment_url;
+                        return;
+                    }
 
-                    window.snap.pay(midtransData.token, {
-                        onSuccess: function (result) {
-                            redirectWith('finish', result);
-                        },
-                        onPending: function (result) {
-                            redirectWith('finish', result);
-                        },
-                        onError: function (result) {
-                            redirectWith('error', result);
-                        },
-                        onClose: function () {
-                            redirectWith('unfinish', {
-                                transaction_status: 'pending',
-                                status_message: 'Payment window closed by user',
-                            });
-                        }
-                    });
-                    shouldReenable = false;
+                    const message = data.message ? data.message : '{{ __('Pesanan berhasil dibuat, namun pembayaran belum dapat diproses. Silakan hubungi kasir.') }}';
+                    if (errorBox) {
+                        errorBox.textContent = message;
+                        errorBox.classList.remove('hidden');
+                    } else {
+                        alert(message);
+                    }
                 } catch (error) {
                     if (errorBox) {
                         errorBox.textContent = defaultErrorMessage;
@@ -287,10 +247,7 @@
                         alert(defaultErrorMessage);
                     }
                 } finally {
-                    if (shouldReenable && submitButton) {
-                        submitButton.disabled = false;
-                        submitButton.classList.remove('opacity-70', 'cursor-not-allowed');
-                    }
+                    enableSubmit();
                 }
             });
         });

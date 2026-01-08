@@ -26,9 +26,8 @@ class Order extends Model
         'total_amount',
         'paid_amount',
         'paid_at',
-        'midtrans_order_id',
-        'midtrans_token',
-        'midtrans_redirect_url',
+        'xendit_invoice_id',
+        'xendit_invoice_url',
         'payment_payload',
         'notes',
         'expires_at',
@@ -72,14 +71,14 @@ class Order extends Model
         return $query->whereNotIn('status', [OrderStatus::Cancelled, OrderStatus::Completed]);
     }
 
-    public function markAsPaid(float $amount, array $payload = []): void
+    public function markAsPaid(float $amount, array $payload = [], array $extra = []): void
     {
-        $this->update([
+        $this->update(array_merge([
             'payment_status' => PaymentStatus::Paid,
             'status' => OrderStatus::Completed,
             'paid_amount' => $amount,
             'paid_at' => now(),
             'payment_payload' => $payload,
-        ]);
+        ], $extra));
     }
 }
