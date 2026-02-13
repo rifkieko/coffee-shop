@@ -37,7 +37,7 @@
                             <div class="flex justify-center">
                                 <button type="button"
                                         id="download-qr"
-                                        class="inline-flex items-center gap-2 rounded-full bg-slate-800 text-white px-4 py-2 text-sm font-semibold shadow hover:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-600">
+                                        class="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-slate-900/10 text-slate-800 px-4 py-2 text-sm font-semibold shadow-sm hover:bg-slate-900/15 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-300/60">
                                     {{ __('Download QR') }}
                                 </button>
                             </div>
