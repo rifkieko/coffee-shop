@@ -7,8 +7,10 @@ use Illuminate\View\View;
 
 class AppLayout extends Component
 {
-    public function __construct(public bool $hideAdminBackButton = false)
-    {
+    public function __construct(
+        public bool $hideAdminBackButton = false,
+        public ?string $adminBackUrl = null,
+    ) {
     }
 
     /**

@@ -18,7 +18,7 @@
     </head>
     <body class="antialiased font-sans bg-white dark:bg-gray-900 text-[#2A1A13] dark:text-gray-100 min-h-screen flex flex-col">
                 @unless(request()->routeIs(['cart.*', 'checkout.*']))
-                <header x-data="{ mobileOpen: false, q: @js(request('q')) }" class="sticky top-0 z-40 border-b border-black/20 bg-white/90 backdrop-blur">
+                <header x-data="{ mobileOpen: false, q: @js(request('q')) }" class="sticky top-0 z-40 bg-white/90 backdrop-blur">
                     @php
                         // Navigation links intentionally disabled per request.
                         $primaryLinks = [];

@@ -24,6 +24,12 @@ class OrderController extends Controller
             ->paginate(15)
             ->withQueryString();
 
+        if ($request->boolean('partial')) {
+            return view('admin.orders.partials.list', [
+                'orders' => $orders,
+            ]);
+        }
+
         return view('admin.orders.index', [
             'orders' => $orders,
             'status' => $status,

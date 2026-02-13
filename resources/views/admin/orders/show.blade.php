@@ -23,20 +23,20 @@
                     <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,320px)]">
                         <div class="space-y-5">
                             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ __('Informasi Pesanan') }}</h3>
-                            <div class="grid gap-3 text-sm text-gray-600 dark:text-gray-300 sm:grid-cols-2">
+                            <div class="grid gap-4 text-sm text-gray-700 dark:text-gray-200 sm:grid-cols-2">
                                 <div>
-                                    <dt class="text-xs uppercase tracking-[0.3em] text-gray-400">{{ __('Nomor Meja') }}</dt>
-                                    <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $order->table_number ?? '-' }}</dd>
+                                    <dt class="text-[11px] uppercase tracking-[0.22em] text-gray-500 dark:text-gray-400">{{ __('Nomor Meja') }}</dt>
+                                    <dd class="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">{{ $order->table_number ?? '-' }}</dd>
                                 </div>
                                 <div>
-                                    <dt class="text-xs uppercase tracking-[0.3em] text-gray-400">{{ __('Pelanggan') }}</dt>
-                                    <dd class="font-medium text-gray-900 dark:text-gray-100">{{ $order->customer_name ?? $order->user?->name ?? '-' }}</dd>
+                                    <dt class="text-[11px] uppercase tracking-[0.22em] text-gray-500 dark:text-gray-400">{{ __('Pelanggan') }}</dt>
+                                    <dd class="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">{{ $order->customer_name ?? $order->user?->name ?? '-' }}</dd>
                                 </div>
                                 <div>
-                                    <dt class="text-xs uppercase tracking-[0.3em] text-gray-400">{{ __('Status Pesanan') }}</dt>
+                                    <dt class="text-[11px] uppercase tracking-[0.22em] text-gray-500 dark:text-gray-400">{{ __('Status Pesanan') }}</dt>
                                     <dd>
                                         <span @class([
-                                            'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold',
+                                            'inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold',
                                             'bg-yellow-100 text-yellow-800' => $order->status === \App\Enums\OrderStatus::Pending,
                                             'bg-blue-100 text-blue-800' => $order->status === \App\Enums\OrderStatus::Preparing,
                                             'bg-green-100 text-green-800' => $order->status === \App\Enums\OrderStatus::Completed,
@@ -48,10 +48,10 @@
                                     </dd>
                                 </div>
                                 <div>
-                                    <dt class="text-xs uppercase tracking-[0.3em] text-gray-400">{{ __('Status Pembayaran') }}</dt>
+                                    <dt class="text-[11px] uppercase tracking-[0.22em] text-gray-500 dark:text-gray-400">{{ __('Status Pembayaran') }}</dt>
                                     <dd>
                                         <span @class([
-                                            'inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold',
+                                            'inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold',
                                             'bg-green-100 text-green-800' => $order->payment_status === \App\Enums\PaymentStatus::Paid,
                                             'bg-yellow-100 text-yellow-800' => $order->payment_status === \App\Enums\PaymentStatus::Pending,
                                             'bg-red-100 text-red-800' => $order->payment_status === \App\Enums\PaymentStatus::Failed,
@@ -63,15 +63,15 @@
                                     </dd>
                                 </div>
                                 <div class="sm:col-span-2">
-                                    <dt class="text-xs uppercase tracking-[0.3em] text-gray-400">{{ __('Total') }}</dt>
-                                    <dd class="font-semibold text-gray-900 dark:text-gray-100">
+                                    <dt class="text-[11px] uppercase tracking-[0.22em] text-gray-500 dark:text-gray-400">{{ __('Total') }}</dt>
+                                    <dd class="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">
                                         Rp{{ number_format($order->total_amount, 0, ',', '.') }}
                                     </dd>
                                 </div>
                                 @if ($order->paid_at)
                                     <div class="sm:col-span-2">
-                                        <dt class="text-xs uppercase tracking-[0.3em] text-gray-400">{{ __('Tanggal Bayar') }}</dt>
-                                        <dd class="font-medium text-gray-900 dark:text-gray-100">
+                                        <dt class="text-[11px] uppercase tracking-[0.22em] text-gray-500 dark:text-gray-400">{{ __('Tanggal Bayar') }}</dt>
+                                        <dd class="mt-1 text-base font-semibold text-gray-900 dark:text-gray-100">
                                             {{ $order->paid_at?->timezone('Asia/Jakarta')->format('d M Y H:i') }}
                                         </dd>
                                     </div>
@@ -84,17 +84,20 @@
                                 <form method="POST" action="{{ route('admin.orders.update-status', $order) }}" class="flex flex-col gap-3">
                                     @csrf
                                     @method('PATCH')
-                                    <select name="status" class="block w-full rounded-full border border-gray-200 px-4 py-2 text-sm text-[#1f1a17] focus:border-[#1ec16b] focus:ring-2 focus:ring-[#1ec16b] focus:outline-none">
+                                    <select name="status" @class([
+                                        'block w-full cursor-pointer rounded-full border px-4 py-2.5 text-sm font-semibold shadow-sm transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900' => true,
+                                        'border-blue-600 bg-blue-600 text-white hover:border-blue-700 hover:bg-blue-700 focus:border-blue-600 focus:ring-blue-500/30' => $order->status === \App\Enums\OrderStatus::Preparing,
+                                        'border-emerald-600 bg-emerald-600 text-white hover:border-emerald-700 hover:bg-emerald-700 focus:border-emerald-600 focus:ring-emerald-500/30' => $order->status === \App\Enums\OrderStatus::Completed,
+                                        'border-[#1ec16b]/40 bg-white text-[#1f1a17] hover:border-[#1ec16b]/70 focus:border-[#1ec16b] focus:ring-[#1ec16b]/30 dark:border-emerald-500/40 dark:bg-gray-900 dark:text-gray-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/30' => ! in_array($order->status, [\App\Enums\OrderStatus::Preparing, \App\Enums\OrderStatus::Completed], true),
+                                    ]) onchange="this.form.submit()">
                                         @foreach (\App\Enums\OrderStatus::cases() as $case)
-                                            <option value="{{ $case->value }}" @selected($order->status === $case)>
-                                                {{ $case->label() }}
-                                            </option>
-                                        @endforeach
+                                            @if (in_array($case, [\App\Enums\OrderStatus::Preparing, \App\Enums\OrderStatus::Completed], true))
+                                                <option value="{{ $case->value }}" @selected($order->status === $case)>
+                                                    {{ $case->label() }}
+                                                </option>
+                                            @endif
+                                    @endforeach
                                     </select>
-                                    <x-primary-button class="justify-center w-full lg:w-auto">
-                                        <x-icons.check class="w-4 h-4 mr-2" />
-                                        {{ __('Update') }}
-                                    </x-primary-button>
                                 </form>
                             </div>
                             <div>
@@ -102,17 +105,20 @@
                                 <form method="POST" action="{{ route('admin.orders.update-payment', $order) }}" class="flex flex-col gap-3">
                                     @csrf
                                     @method('PATCH')
-                                    <select name="payment_status" class="block w-full rounded-full border border-gray-200 px-4 py-2 text-sm text-[#1f1a17] focus:border-[#1ec16b] focus:ring-2 focus:ring-[#1ec16b] focus:outline-none">
+                                    <select name="payment_status" @class([
+                                        'block w-full cursor-pointer rounded-full border px-4 py-2.5 text-sm font-semibold shadow-sm transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900' => true,
+                                        'border-amber-500 bg-amber-500 text-white hover:border-amber-600 hover:bg-amber-600 focus:border-amber-500 focus:ring-amber-400/30' => $order->payment_status === \App\Enums\PaymentStatus::Pending,
+                                        'border-emerald-600 bg-emerald-600 text-white hover:border-emerald-700 hover:bg-emerald-700 focus:border-emerald-600 focus:ring-emerald-500/30' => $order->payment_status === \App\Enums\PaymentStatus::Paid,
+                                        'border-[#1ec16b]/40 bg-white text-[#1f1a17] hover:border-[#1ec16b]/70 focus:border-[#1ec16b] focus:ring-[#1ec16b]/30 dark:border-emerald-500/40 dark:bg-gray-900 dark:text-gray-100 dark:focus:border-emerald-400 dark:focus:ring-emerald-500/30' => ! in_array($order->payment_status, [\App\Enums\PaymentStatus::Pending, \App\Enums\PaymentStatus::Paid], true),
+                                    ]) onchange="this.form.submit()">
                                         @foreach (\App\Enums\PaymentStatus::cases() as $case)
-                                            <option value="{{ $case->value }}" @selected($order->payment_status === $case)>
-                                                {{ $case->label() }}
-                                            </option>
-                                        @endforeach
+                                            @if (in_array($case, [\App\Enums\PaymentStatus::Pending, \App\Enums\PaymentStatus::Paid], true))
+                                                <option value="{{ $case->value }}" @selected($order->payment_status === $case)>
+                                                    {{ $case->label() }}
+                                                </option>
+                                            @endif
+                                    @endforeach
                                     </select>
-                                    <x-primary-button class="justify-center w-full lg:w-auto">
-                                        <x-icons.check class="w-4 h-4 mr-2" />
-                                        {{ __('Update') }}
-                                    </x-primary-button>
                                 </form>
                             </div>
                         </div>

@@ -45,13 +45,13 @@
                         $anchor = \Illuminate\Support\Str::slug($categoryName) ?: 'uncategorized';
                     @endphp
                     <div id="category-{{ $anchor }}" class="space-y-6">
-                        <div class="space-y-1">
+                        <div class="space-y-0.5">
                             <p class="text-xs font-semibold uppercase tracking-[0.4em] text-[#b07b57]">Kategori</p>
-                            <div class="flex items-center justify-between">
+                            <div class="flex items-center justify-between mt-1">
                                 <h2 class="text-2xl font-semibold text-[#2A1A13]">{{ $categoryName }}</h2>
                             </div>
                             <p class="text-sm text-[#6b5445]">{{ $categoryDescription }}</p>
-                        </div>=
+                        </div>
 
                         <div class="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                             @forelse ($items as $item)
@@ -101,9 +101,6 @@
     </div>
 </section>
 @endsection
-
-
-
 
 
 

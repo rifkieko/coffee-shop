@@ -127,10 +127,12 @@
 
 @push('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        (() => {
             const statusUrl = @json(route('checkout.status', ['order' => $order->order_number]));
             const paidUrl = @json(route('checkout.paid', ['order' => $order->order_number]));
             const statusText = document.querySelector('[data-payment-status]');
+            const refreshMs = 1000;
+            let timer = null;
 
             const updateStatus = (label) => {
                 if (statusText) {
@@ -145,6 +147,7 @@
                             'Accept': 'application/json',
                             'X-Requested-With': 'XMLHttpRequest',
                         },
+                        credentials: 'same-origin',
                         cache: 'no-store',
                     });
                     if (!res.ok) return;
@@ -160,11 +163,37 @@
                 } catch (e) {
                     // ignore transient errors
                 }
-                setTimeout(pollStatus, 3500);
             };
 
-            pollStatus();
-        });
+            const start = () => {
+                if (timer) return;
+                timer = setInterval(pollStatus, refreshMs);
+                pollStatus();
+            };
+
+            const stop = () => {
+                if (!timer) return;
+                clearInterval(timer);
+                timer = null;
+            };
+
+            const boot = () => {
+                start();
+                document.addEventListener('visibilitychange', () => {
+                    if (document.hidden) {
+                        stop();
+                    } else {
+                        start();
+                    }
+                });
+            };
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', boot);
+            } else {
+                boot();
+            }
+        })();
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {

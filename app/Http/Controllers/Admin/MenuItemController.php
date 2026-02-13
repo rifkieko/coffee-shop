@@ -206,10 +206,6 @@ class MenuItemController extends Controller
 
     public function destroy(MenuItem $menuItem): RedirectResponse
     {
-        if ($menuItem->orderItems()->exists()) {
-            return redirect()->back()->withErrors('Menu tidak dapat dihapus karena sudah pernah dipesan.');
-        }
-
         if ($menuItem->image_path && Storage::disk('public')->exists($menuItem->image_path)) {
             Storage::disk('public')->delete($menuItem->image_path);
         }
@@ -242,7 +238,7 @@ class MenuItemController extends Controller
         $i = 1;
 
         while (
-            MenuItem::where('slug', $slug)
+            MenuItem::withTrashed()->where('slug', $slug)
                 ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
                 ->exists()
         ) {
